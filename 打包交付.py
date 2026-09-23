@@ -62,6 +62,9 @@ MUST_HAVE = [
     "02_源码/tests/test_acceptance_8groups.py", "02_源码/tests/test_authenticity.py",
     "02_源码/tests/test_adversarial.py", "02_源码/tests/test_adversarial2.py",
     "02_源码/tests/test_search_parsers.py",
+    # 间接提示注入防御（R13）与编排层注入连线（本轮安全加固新增，必须随包）
+    "02_源码/tests/test_injection_defense.py",
+    "02_源码/tests/test_orchestrator_injection_wiring.py",
     "02_源码/tests/生成8组表格.py",
     # 检索层离线测试样本（真实页面快照 + 采集脚本，保证测试可复跑、不被质疑编造）
     "02_源码/tests/fixtures/采集样本.py",

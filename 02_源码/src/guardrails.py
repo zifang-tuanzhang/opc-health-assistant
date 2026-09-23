@@ -161,10 +161,30 @@ CAMPUS_WORDS_EN: tuple[str, ...] = (
 )
 
 
-def _any_sub(text: str, words: Sequence[str]) -> bool:
-    """子串匹配（大小写不敏感），用于英文触发词集。空输入恒 False。"""
+# 英文触发词的词边界：前后都不是 [a-z0-9]。中文相邻字符不算字母数字，故 "ICU病房" 仍命中。
+_ASCII_BOUND_L = r"(?<![a-z0-9])"
+_ASCII_BOUND_R = r"(?![a-z0-9])"
+
+
+def _first_match_sub(text: str, words: Sequence[str]) -> Optional[str]:
+    """返回第一个「按词边界」命中的英文触发词（无则 None）。大小写不敏感。
+
+    为什么不是朴素子串：英文短词做子串会误伤——如 "icu" 会命中 "particular" /
+    "ridiculous" / "curriculum"，把普通英文提问误判成"易变资源"（R9）从而误拦正常回答。
+    词边界既能命中独立词（ICU / chest pain），又不匹配被字母包住的片段。空输入恒 None。
+    """
     t = (text or "").lower()
-    return any(w in t for w in words)
+    for w in words:
+        if not w:
+            continue
+        if re.search(_ASCII_BOUND_L + re.escape(w) + _ASCII_BOUND_R, t):
+            return w
+    return None
+
+
+def _any_sub(text: str, words: Sequence[str]) -> bool:
+    """英文触发词集是否命中（大小写不敏感 + 词边界，防短词误伤）。空输入恒 False。"""
+    return _first_match_sub(text, words) is not None
 
 
 _HTTP_RE = re.compile(r"^https?://", re.IGNORECASE)
@@ -417,7 +437,7 @@ def validate_output(
     # ── R5 紧急优先（用户描述紧急症状） ──
     hit_emergency = next((w for w in EMERGENCY_WORDS if w in msg), None)
     if not hit_emergency:
-        hit_emergency = next((w for w in EMERGENCY_WORDS_EN if w in msg.lower()), None)
+        hit_emergency = _first_match_sub(msg, EMERGENCY_WORDS_EN)
     if hit_emergency and "120" not in text:
         violations.append(
             Violation("R5", "usage_tips", f"检测到紧急词「{hit_emergency}」，产出未提示拨打 120")

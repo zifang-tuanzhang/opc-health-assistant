@@ -96,11 +96,11 @@
 
 ```bash
 cd 02_源码
-python 跑全部测试.py            # 十套全跑（离线七套 + 实网三套）
-python 跑全部测试.py --offline   # 只跑离线七套（确定、快、不需要密钥）
+python 跑全部测试.py            # 十二套全跑（离线九套 + 实网三套）
+python 跑全部测试.py --offline   # 只跑离线九套（确定、快、不需要密钥）
 ```
 
-也可以走 `pytest`（等价于离线七套）：
+也可以走 `pytest`（等价于离线九套）：
 
 ```bash
 cd 02_源码
@@ -110,13 +110,13 @@ python -m pytest tests/ -v
 | 测试文件 | 覆盖 | 是否需联网 |
 |---|---|---|
 | `tests/test_smoke.py` | 冒烟测试 + 密钥架构链路（25 项） | 否 |
-| `tests/test_guardrails.py` | 护栏规则集 R1~R13（含间接提示注入防御 R13，50 项） | 否 |
+| `tests/test_guardrails.py` | 护栏规则集 R1~R13（含间接提示注入防御 R13，38 项） | 否 |
 | `tests/test_acceptance_8groups.py` | **8 组验收场景**（与赛题要求的 8 个覆盖方向一一对应）+ 7 项附加健壮性（离线注入，确定性可复跑；含条件澄清 A5~A7） | 否 |
-| `tests/test_search_parsers.py` | **检索层解析 + 风控页识别**（98 项，用真实页面快照离线验证） | 否 |
+| `tests/test_search_parsers.py` | **检索层解析 + 风控页识别 + 官方域优先排序**（101 项，用真实页面快照离线验证） | 否 |
 | `tests/test_frontend_smoke.py` | **前端静态页结构冒烟**（A5 模拟页 / index.html 渲染函数与 A4/B1/B2/U3 契约锚点） | 否 |
 | `tests/test_clarify_regression.py` | **澄清轮回归 U2**（3 项） | 否 |
-| `tests/test_ops_guarantees.py` | **运行保障与网关边界**（进阶3 三态：缓存/限速/预算 + SSE 主路径 + 安全头 + 损坏告警，27 项） | 否 |
-| `tests/test_injection_defense.py` | **间接提示注入防御 + 边界词多语言兜底**（R13 来源可追溯 5 项 + R4/R5/R9/R10 英文触发 4 项 + 无过杀 2 项，12 项，离线） | 否 |
+| `tests/test_ops_guarantees.py` | **运行保障与网关边界**（进阶3 三态：缓存/限速/预算 + SSE 主路径 + 安全头 + 损坏告警 + 令牌闸三端点，33 项） | 否 |
+| `tests/test_injection_defense.py` | **间接提示注入防御 + 边界词多语言兜底**（R13 来源可追溯 6 项 + R4/R5/R9/R10 英文触发 5 项 + 无过杀 4 项，15 项，离线） | 否 |
 | `tests/test_orchestrator_injection_wiring.py` | **编排层注入连线**（检索 url 写入留痕 / 上下文隔离声明 / 伪造来源经反射逼出，4 项，mock 模型离线） | 否 |
 | `tests/test_authenticity.py` | **真实性取证**（含"检索不可用→零编造"） | 是 |
 | `tests/test_adversarial.py` | **对抗提示词·话术型**（7 条诱导话术） | 是 |

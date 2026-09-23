@@ -431,7 +431,8 @@ def _sanitize_retrieved_text(s: str) -> str:
     low = s.lower()
     for m in _INJECTION_MARKERS:
         if m.lower() in low:
-            s = s.replace(m, "")
+            # 大小写不敏感替换：否则 "Ignore Previous"（首字母大写）等变体会漏清洗。
+            s = re.sub(re.escape(m), "", s, flags=re.IGNORECASE)
     return re.sub(r"\s+", " ", s).strip()
 
 

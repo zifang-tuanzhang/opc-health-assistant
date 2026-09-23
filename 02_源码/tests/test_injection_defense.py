@@ -145,5 +145,17 @@ out = mk_output(results=[mk_result(url="https://www.example.com/a")], tips=["x"]
 rules, _ = rules_of(out, "Where is the hospital and how to register", hit_log(retrieved))
 check("N2 英文问路→不过杀R4", "R4" not in rules, f"命中:{rules}")
 
+# N3 词边界：含 "particular"（内嵌 icu）不应误触发 R9（防短词子串误伤）
+out = mk_output(results=[mk_result(name="某医院", url="https://www.example.com/a", info_status=None)],
+                tips=["x"])
+rules, _ = rules_of(out, "In particular I want to know about this hospital", hit_log(retrieved))
+check("N3 particular→不过杀R9(词边界)", "R9" not in rules, f"命中:{rules}")
+
+# N4 词边界：独立 "ICU" 仍应触发 R9（保住召回，不能因去误伤而丢真阳性）
+out = mk_output(results=[mk_result(name="某医院", url="https://www.example.com/a", info_status=None)],
+                tips=["x"])
+rules, _ = rules_of(out, "which hospital has an available ICU bed", hit_log(retrieved))
+check("N4 独立ICU→仍触发R9(词边界)", "R9" in rules, f"命中:{rules}")
+
 print(f"\n══════ 间接提示注入防御测试：通过 {passed} / 失败 {failed} ══════")
 sys.exit(1 if failed else 0)

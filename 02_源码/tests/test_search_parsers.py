@@ -844,6 +844,42 @@ def main() -> int:
         search._BACKENDS.pop("__slow_b__", None)
         search._CACHE.clear()
 
+    # 6c) 官方域优先排序：**首次与缓存命中必须一致**（防"第二次丢排序/丢标注"回归）
+    #     动因：排序若只在 return 前做、缓存里存的是未排序结果，则同一查询第二次起会
+    #     丢掉官方域优先顺序与 authority 标注，首次与缓存结果不一致（评审连问两遍即可看出）。
+    print("\n§6c 官方域优先排序（首次与缓存命中一致）")
+    _rank_source = [
+        {"title": "补充来源", "url": "https://news.example.com/a", "snippet": "x"},
+        {"title": "官方来源", "url": "https://wjw.km.gov.cn/b", "snippet": "x"},
+        {"title": "权威来源", "url": "https://www.kmhospital.com/c", "snippet": "x"},
+    ]
+
+    def _rank_backend(_q, _n, _t):
+        return [dict(h) for h in _rank_source]
+
+    search._BACKENDS["__rank__"] = _rank_backend
+    _bak_r = list(config.SEARCH_BACKENDS)
+    try:
+        config.SEARCH_BACKENDS = ["__rank__"]
+        search._CACHE.clear()
+        first = search.web_search("排序测试查询", None, 5, 5.0)
+        second = search.web_search("排序测试查询", None, 5, 5.0)  # 命中缓存
+        check("首次：官方域(.gov.cn)排最前",
+              bool(first) and ".gov.cn" in first[0].get("url", ""),
+              str([h.get("url") for h in first]))
+        check("首次：带 authority 标注（官方/权威/补充）",
+              bool(first) and first[0].get("authority") == "官方"
+              and first[-1].get("authority") == "补充",
+              str([h.get("authority") for h in first]))
+        check("缓存命中：排序与标注不丢失（与首次一致）",
+              bool(second) and [h.get("url") for h in second] == [h.get("url") for h in first]
+              and all(h.get("authority") for h in second),
+              str([(h.get("url"), h.get("authority")) for h in second]))
+    finally:
+        config.SEARCH_BACKENDS = _bak_r
+        search._BACKENDS.pop("__rank__", None)
+        search._CACHE.clear()
+
     # 7) 产品化降级：检索全空时必须给「手动检索入口」
     # 动因（实测）：三家免密钥引擎会同时限流，检索层返回空，产品只说一句
     #   "暂未查到"——评审看到会以为检索功能坏了。故由代码兜底补一条可点击入口，

@@ -580,8 +580,12 @@ def web_search(
             except Exception:
                 hits = []
             if hits:
-                _cache_put(key, hits)
-                return _rank_by_authority(hits)
+                # 先排序再缓存：缓存命中路径（见上方 _cache_get）直接回放缓存内容，
+                # 若缓存的是未排序结果，则「同一查询第二次起」会丢掉官方域优先排序与
+                # authority 标注（首次与缓存结果不一致）。故此处缓存**已排序**的列表。
+                ranked = _rank_by_authority(hits)
+                _cache_put(key, ranked)
+                return ranked
     return []
 
 

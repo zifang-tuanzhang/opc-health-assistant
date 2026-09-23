@@ -111,6 +111,20 @@ def client_key(request: Request, session_id: Optional[str]) -> str:
     return f"ip:{request.client.host if request.client else 'unknown'}"
 
 
+def api_token_ok(request: Request) -> bool:
+    """可选 API 令牌闸（纵深防御）。
+
+    OPC_API_TOKEN 未设置时默认通过（本地演示，仅 127.0.0.1 可达，暴露面极小）；
+    设置后，敏感端点（/api/keys/add、/history、/reset）必须携带
+    ``X-OPC-Token`` 请求头或 ``?token=`` 查询参数且与之匹配，否则拒绝。
+    失败即拒绝（这是安全闸，与限流"故障即放行"的取舍相反——安全优先）。
+    """
+    tok = getattr(config, "API_TOKEN", "")
+    if not tok:
+        return True
+    return request.headers.get("X-OPC-Token") == tok or (request.query_params.get("token") or "") == tok
+
+
 def error_body(code: str, hint: str, session_id: Optional[str] = None) -> dict:
     """统一结构化错误体（不泄漏堆栈/内部细节）。
 

@@ -97,6 +97,7 @@ class RetrievalLogEntry(BaseModel):
     city: Optional[str] = Field(None, description="城市")
     status: str = Field(..., description="状态：search 用 calling/ok/empty；guardrail 用 degraded/reject")
     hit_count: Optional[int] = Field(None, description="命中条数")
+    urls: List[str] = Field(default_factory=list, description="本轮该次检索命中并返回的真实来源 URL 列表（供 R13 来源可追溯校验；未记录则跳过校验）")
     timestamp: str = Field("", description="时间戳")
 
 

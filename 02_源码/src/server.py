@@ -20,7 +20,7 @@ import logging
 from pathlib import Path
 from typing import Optional
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
@@ -179,23 +179,29 @@ async def chat_stream(req: ChatRequest, request: Request):
 
 
 @app.post("/reset")
-async def reset(req: ResetRequest) -> dict:
+async def reset(req: ResetRequest, request: Request) -> dict:
     """重置会话（清空该 session 的服务端上下文）。
 
     与会话隔离配套：前端「重置会话」会换新 session_id 并调用本接口，
     避免旧上下文在服务端无限累积（内存版会话的清理入口）。
+    敏感端点：OPC_API_TOKEN 设置后需带令牌（纵深防御）。
     """
+    if not guard.api_token_ok(request):
+        raise HTTPException(status_code=403, detail="缺少有效的 API 令牌，操作被拒绝。")
     existed = session.session_store.reset(req.session_id) if req.session_id else False
     return {"ok": True, "reset": existed}
 
 
 @app.get("/history")
-async def history() -> list:
+async def history(request: Request) -> list:
     """进阶3：历史会话清单（前端「历史记录」入口）。
 
     返回 list_sessions() 的轻量元信息（不泄露完整对话内容）；
     空存储时返回 []，前端据此展示「暂无历史会话」。
+    敏感端点：OPC_API_TOKEN 设置后需带令牌（纵深防御）。
     """
+    if not guard.api_token_ok(request):
+        raise HTTPException(status_code=403, detail="缺少有效的 API 令牌，操作被拒绝。")
     return session.list_sessions()
 
 

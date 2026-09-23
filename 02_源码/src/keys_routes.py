@@ -8,10 +8,10 @@
 
 from __future__ import annotations
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
 
-from . import keystore, llm_client, providers
+from . import guard, keystore, llm_client, providers
 
 router = APIRouter(prefix="/api/keys", tags=["keys"])
 
@@ -56,8 +56,13 @@ def api_status():
 
 
 @router.post("/add")
-def api_add(req: AddKeyRequest):
-    """选厂商 + 粘贴密钥 → 真连一次验证 → 写入外部密钥库。"""
+def api_add(req: AddKeyRequest, request: Request):
+    """选厂商 + 粘贴密钥 → 真连一次验证 → 写入外部密钥库。
+
+    敏感端点（写入外部密钥库）：OPC_API_TOKEN 设置后需带令牌（纵深防御）。
+    """
+    if not guard.api_token_ok(request):
+        raise HTTPException(status_code=403, detail="缺少有效的 API 令牌，操作被拒绝。")
     preset = providers.get_provider(req.provider_id)
     if not preset:
         raise HTTPException(status_code=400, detail=f"未知供应商：{req.provider_id}")

@@ -42,6 +42,8 @@ class Session:
 
     session_id: str
     turns: list = field(default_factory=list)
+    # 跨轮已知来源白名单（仅累计真实检索命中 url），供 R13 多轮复用来源不过杀。
+    retrieved_urls: set = field(default_factory=set)
     created_at: float = field(default_factory=time.time)
     updated_at: float = field(default_factory=time.time)
 
@@ -109,6 +111,20 @@ def append(session_id: str, role: str, content: str) -> None:
     """追加一轮对话记录（自动创建会话）。"""
     sess = session_store.get_or_create(session_id)
     sess.append(Turn(role=role, content=content))
+
+
+def record_retrieved_urls(session_id: str, urls) -> None:
+    """把本轮真实检索命中的 url 累计进会话白名单（供 R13 跨轮复用来源不过杀）。"""
+    sess = session_store.get_or_create(session_id)
+    for u in urls:
+        if u:
+            sess.retrieved_urls.add(u)
+
+
+def get_retrieved_urls(session_id: str) -> set:
+    """取会话累计的真实检索来源白名单（空集表示无）。"""
+    sess = session_store.get(session_id)
+    return set(sess.retrieved_urls) if sess else set()
 
 
 def list_sessions() -> list[dict]:

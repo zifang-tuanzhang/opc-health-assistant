@@ -250,6 +250,49 @@ finally:
 # 收尾：把临时坏文件恢复成干净空库（本进程后续无依赖，防意外）
 keystore.save_store({"providers": {}, "active_provider": None})
 
+# ───────────────────────── F. 令牌闸（纵深防御）enforce 模式 ─────────────────────────
+# config.API_TOKEN 取 import-time 环境变量，故 enforce 必须用「先设 OPC_API_TOKEN 再 import」的
+# 子进程验证；本进程以默认演示模式运行（闸门放行，已在 C3/health 等用例隐式覆盖）。
+# 三个敏感端点（/reset、/history、/api/keys/add）缺令牌必须 403；带正确令牌进入业务（/reset、
+# /history 200，/api/keys/add 因未知供应商走业务校验 400，不联网）。钉死「拒绝分支返回真 403」，
+# 防回归成「被异常处理器吞成 200/INTERNAL」的坏端点。
+import subprocess as _subprocess  # noqa: E402
+import os as _os  # noqa: E402
+
+_enforce_script = _TMP / "enforce_gate_check.py"
+_enforce_lines = [
+    "import sys, json",
+    "from pathlib import Path",
+    "sys.path.insert(0, %s)" % json.dumps(BASE),
+    "from fastapi.testclient import TestClient",
+    "import src.server as S",
+    "c = TestClient(S.app)",
+    "r1 = c.post('/reset', json={'session_id':'x'}).status_code",
+    "r2 = c.get('/history', params={'session_id':'x'}).status_code",
+    "r3 = c.post('/reset', json={'session_id':'x'}, headers={'X-OPC-Token':'secret123'}).status_code",
+    "r4 = c.get('/history', params={'session_id':'x'}, headers={'X-OPC-Token':'secret123'}).status_code",
+    "r5 = c.post('/api/keys/add', json={'provider_id':'does_not_exist','api_key':'x'}).status_code",
+    "r6 = c.post('/api/keys/add', json={'provider_id':'does_not_exist','api_key':'x'}, headers={'X-OPC-Token':'secret123'}).status_code",
+    "print(json.dumps({'reset_no':r1,'history_no':r2,'reset_ok':r3,'history_ok':r4,'keys_no':r5,'keys_ok':r6}))",
+]
+_enforce_script.write_text("\n".join(_enforce_lines), encoding="utf-8")
+_env = dict(_os.environ)
+_env["OPC_API_TOKEN"] = "secret123"
+_try = _subprocess.run([sys.executable, str(_enforce_script)], capture_output=True,
+                       text=True, encoding="utf-8", cwd=str(BASE), env=_env, timeout=120)
+_enf = None
+if _try.returncode == 0:
+    try:
+        _enf = json.loads(_try.stdout.strip().splitlines()[-1])
+    except Exception:
+        _enf = None
+check("F1 reset-gate-403", bool(_enf) and _enf["reset_no"] == 403, str(_enf))
+check("F2 history-gate-403", bool(_enf) and _enf["history_no"] == 403, str(_enf))
+check("F3 reset-gate-pass-200", bool(_enf) and _enf["reset_ok"] == 200, str(_enf))
+check("F4 history-gate-pass-200", bool(_enf) and _enf["history_ok"] == 200, str(_enf))
+check("F5 keys-gate-403", bool(_enf) and _enf["keys_no"] == 403, str(_enf))
+check("F6 keys-gate-business-400", bool(_enf) and _enf["keys_ok"] == 400, str(_enf))
+
 print(f"\n===== 运行保障与网关边界测试：通过 {passed} / 失败 {failed} =====")
 if failed:
     sys.exit(1)

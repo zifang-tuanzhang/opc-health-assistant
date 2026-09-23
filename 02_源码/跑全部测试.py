@@ -37,6 +37,8 @@ SUITES = [
     ("前端结构冒烟", "test_frontend_smoke.py"),
     ("澄清轮回归（U2）", "test_clarify_regression.py"),
     ("运行保障与网关边界", "test_ops_guarantees.py"),
+    ("间接提示注入防御（R13）", "test_injection_defense.py"),
+    ("编排层注入连线", "test_orchestrator_injection_wiring.py"),
 ]
 # 实网真机版：需联网 + 已配密钥，故默认单列，可用 --offline 跳过
 NETWORK_SUITES = [

@@ -509,6 +509,27 @@ def cache_stats() -> dict:
     return {"entries": len(_CACHE), "ttl_seconds": _CACHE_TTL, "min_interval": _MIN_INTERVAL}
 
 
+def _rank_by_authority(hits: list[dict]) -> list[dict]:
+    """对检索结果做权威域加权排序（赛题：优先官网与卫健委等权威渠道），并标注 authority。
+
+    不删除任何结果（"宁少不假"是指丢弃无 URL 的条目，这里是"排序"），只把官方/医院官网来源
+    排到前面，让模型与前端优先引用；authority 字段同时回传给编排层上下文，供模型识别【官方】结果。
+    判定纯模式（.gov.cn / hospital / yiyuan / .edu.cn），不硬编码任何具体医院名（符合铁律）。
+    """
+    def _score(h: dict) -> int:
+        host = (urlparse(h.get("url", "")).netloc or "").lower()
+        if host.endswith(".gov.cn"):
+            return 3                      # 卫健委 / 政府官方
+        if "hospital" in host or "yiyuan" in host or host.endswith(".edu.cn"):
+            return 2                      # 医院官网 / 医学院附属医院信号
+        return 1
+
+    for h in hits:
+        s = _score(h)
+        h["authority"] = "官方" if s == 3 else ("权威" if s == 2 else "补充")
+    return sorted(hits, key=_score, reverse=True)
+
+
 def web_search(
     query: str,
     city: Optional[str] = None,
@@ -560,7 +581,7 @@ def web_search(
                 hits = []
             if hits:
                 _cache_put(key, hits)
-                return hits
+                return _rank_by_authority(hits)
     return []
 
 

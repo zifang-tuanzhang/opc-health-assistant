@@ -35,4 +35,6 @@ collect_ignore = [
     "test_search_parsers.py",
     "test_clarify_regression.py",
     "test_ops_guarantees.py",
+    "test_injection_defense.py",
+    "test_orchestrator_injection_wiring.py",
 ]

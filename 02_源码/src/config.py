@@ -94,8 +94,16 @@ def _as_float(env_name: str, default: str) -> float:
 
 # ── 运行环境 ──
 ENV: str = os.environ.get("OPC_ENV", "dev").lower()  # dev / prod
-HOST: str = os.environ.get("OPC_HOST", "0.0.0.0")
+# 默认只监听本机回环（127.0.0.1）：本作品是「本地单用户演示」，无需暴露到局域网/公网；
+# 监听 0.0.0.0 会在评审机并入网络时被同网段任意主机访问（/api/keys、/history、/reset 无鉴权时的暴露面）。
+# 若确需跨机演示，用 OPC_HOST=0.0.0.0 显式开启，并务必同步设置 OPC_API_TOKEN。
+HOST: str = os.environ.get("OPC_HOST", "127.0.0.1")
 PORT: int = _as_int("OPC_PORT", "8137")
+
+# 可选 API 令牌（敏感端点闸）：未设置时默认开放（仅 127.0.0.1 可达，本地演示够用）；
+# 设置后，/api/keys/add、/history、/reset 必须带 X-OPC-Token 头或 ?token= 参数，否则 403。
+# 纵深防御：与 HOST=127.0.0.1 共同收敛「评审环境误暴露」风险。
+API_TOKEN: str = os.environ.get("OPC_API_TOKEN", "")
 
 # ── 演示城市（编排参数：默认检索范围；模型仍可接受其他城市）──
 # 注意：这是「检索默认城市」配置，不是硬编码答案；演示范围已实搜验证（昆明）。

@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "kind": "llm-provider-preset",
-  "_readme": "预置模型供应商库（随源码发布，只装配置元数据，永不装密钥值）。评审在「添加密钥」界面看到的就是这份清单。要加厂商就整体替换本文件或在 keys.user.json 覆盖。所有国内厂商均为 OpenAI 兼容网关（wire=openai），后端用一套 openai SDK 按 base_url 调。",
+  "_readme": "预置模型供应商库（随源码发布，只装配置元数据，永不装密钥值）。使用者在「添加密钥」界面看到的就是这份清单。要加厂商就整体替换本文件或在 keys.user.json 覆盖。所有国内厂商均为 OpenAI 兼容网关（wire=openai），后端用一套 openai SDK 按 base_url 调。",
   "updated": "2026-09-21",
   "providers": [
     {

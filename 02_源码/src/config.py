@@ -95,14 +95,14 @@ def _as_float(env_name: str, default: str) -> float:
 # ── 运行环境 ──
 ENV: str = os.environ.get("OPC_ENV", "dev").lower()  # dev / prod
 # 默认只监听本机回环（127.0.0.1）：本作品是「本地单用户演示」，无需暴露到局域网/公网；
-# 监听 0.0.0.0 会在评审机并入网络时被同网段任意主机访问（/api/keys、/history、/reset 无鉴权时的暴露面）。
+# 监听 0.0.0.0 会在机器并入网络时被同网段任意主机访问（/api/keys、/history、/reset 无鉴权时的暴露面）。
 # 若确需跨机演示，用 OPC_HOST=0.0.0.0 显式开启，并务必同步设置 OPC_API_TOKEN。
 HOST: str = os.environ.get("OPC_HOST", "127.0.0.1")
 PORT: int = _as_int("OPC_PORT", "8137")
 
 # 可选 API 令牌（敏感端点闸）：未设置时默认开放（仅 127.0.0.1 可达，本地演示够用）；
 # 设置后，/api/keys/add、/history、/reset 必须带 X-OPC-Token 头或 ?token= 参数，否则 403。
-# 纵深防御：与 HOST=127.0.0.1 共同收敛「评审环境误暴露」风险。
+# 纵深防御：与 HOST=127.0.0.1 共同收敛「误暴露」风险。
 API_TOKEN: str = os.environ.get("OPC_API_TOKEN", "")
 
 # ── 演示城市（编排参数：默认检索范围；模型仍可接受其他城市）──
@@ -130,7 +130,7 @@ DEMO_CITY: str = os.environ.get("OPC_DEMO_CITY", "昆明")
 # ddg（DuckDuckGo lite）**默认不再启用**——实测动因（2026-09-21）：
 #   它在国内网络不可达，每次外呼要**白等满 12 秒超时**；而检索是「后端 × 查询变体」
 #   双层循环，仅一个 ddg 就会让每次查询多耗 ~24 秒。一次端到端实测因此达到 **62.9 秒**，
-#   评审会误判成"系统卡死"。需要时可显式加回：OPC_SEARCH_BACKENDS="so360,mso360,sogou,sm,ddg"。
+#   用户会误判成"系统卡死"。需要时可显式加回：OPC_SEARCH_BACKENDS="so360,mso360,sogou,sm,ddg"。
 # 可用 OPC_SEARCH_BACKENDS 覆盖，如 "sogou,so360"。
 SEARCH_BACKENDS: list[str] = [
     b.strip().lower()
@@ -146,7 +146,7 @@ SEARCH_BACKENDS: list[str] = [
 SEARCH_BUDGET_SECONDS: float = _as_float("OPC_SEARCH_BUDGET_SECONDS", "18")
 
 # ── 模型 API 回落（主路径是外部密钥库，这里是它的回落位）──
-# 主路径：评审在网页「添加密钥」→ 写入【外部密钥库】
+# 主路径：在网页「添加密钥」→ 写入【外部密钥库】
 #         (src/keystore.py，%USERPROFILE%\.opc_health\keys.json)，不进仓库。
 # 回落路径：容器 / CI / 无用户目录场景下没有 ~/.opc_health，改用下面这组环境变量
 #         （LLM_API_KEY 为触发条件；BASE_URL 缺省用 OpenAI 官方地址）。
@@ -159,7 +159,7 @@ LLM_MODEL: str = os.environ.get("OPC_LLM_MODEL", "")
 # 最多打回轮数：产出不通过校验时编码回灌模型，令其重新生成（非重新检索）。
 GUARDRAIL_MAX_REFLECT: int = _as_int("OPC_GUARDRAIL_MAX_REFLECT", "2")
 # R3 来源可达校验：默认【关】。开启后校验每条来源链接可访问（需联网探测），
-# 联网探测在弱网/受限网络下易产生假阳性 → 默认关闭，评审现场需要时再开。
+# 联网探测在弱网/受限网络下易产生假阳性 → 默认关闭，需要时再开。
 GUARDRAIL_VERIFY_URLS: bool = _as_bool("OPC_GUARDRAIL_VERIFY_URLS", "0")
 
 # ── LLM 运行保障（赛题「进阶3」：成本记录 / 缓存 / 限速）──
@@ -168,7 +168,7 @@ GUARDRAIL_VERIFY_URLS: bool = _as_bool("OPC_GUARDRAIL_VERIFY_URLS", "0")
 LLM_DAILY_BUDGET_TOKENS: int = _as_int("OPC_LLM_DAILY_BUDGET_TOKENS", "1000000")
 LLM_CACHE_TTL_SECONDS: int = _as_int("OPC_LLM_CACHE_TTL_SECONDS", "86400")
 # 每分钟模型调用上限：注意一轮对话内部可能调用 2~3 次（分析→生成→打回重整），
-# 故默认 30（约 10 轮/分钟），既防死循环又不会让评审连续提问时被误挡。
+# 故默认 30（约 10 轮/分钟），既防死循环又不会让使用者连续提问时被误挡。
 LLM_RATE_LIMIT_PER_MIN: int = _as_int("OPC_LLM_RATE_LIMIT_PER_MIN", "30")
 
 # ── 网关边界（输入护栏：空/超长/限流）──

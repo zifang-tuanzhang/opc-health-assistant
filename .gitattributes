@@ -1,0 +1,47 @@
+# ══════════════════════════════════════════════════════════════
+#  换行符与二进制处理纪律
+#  目的：保证「别的机器 clone 下来就能跑」，不因客户端 Git 配置差异而损坏文件
+# ══════════════════════════════════════════════════════════════
+
+# ── Windows 批处理脚本：必须始终检出为 CRLF ──
+# 原因：cmd.exe 按行解析 .bat，若被检出为 LF，部分命令（如 goto/label、多行 if 块）
+# 会解析异常，表现为「双击一闪而过」。显式声明 eol=crlf 可无视客户端
+# core.autocrlf 设置，保证任何机器 clone 后都拿到可执行的 .bat。
+*.bat  text eol=crlf
+*.cmd  text eol=crlf
+
+# ── 二进制资产：禁止 Git 做任何文本转换 ──
+# 离线依赖轮子与页面快照是本项目「不联网也能装起来」的关键，
+# 任何行尾转换都会破坏其 CRC 校验，故显式标记为二进制。
+*.whl   binary
+*.zip   binary
+*.gz    binary
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.gif   binary
+*.ico   binary
+*.pdf   binary
+*.docx  binary
+*.dll   binary
+*.so    binary
+*.exe   binary
+
+# ── 文本文件：统一 LF ──
+# 目的：让工作区与版本库的换行符一致。否则「工作区 CRLF / 仓库 LF」会让每次
+# 内容微改都显示成「整文件重写」，既污染变更历史，也让代码审查无从下手。
+*.md     text eol=lf
+*.html   text eol=lf
+*.htm    text eol=lf
+*.py     text eol=lf
+*.json   text eol=lf
+*.txt    text eol=lf
+*.css    text eol=lf
+*.js     text eol=lf
+*.yml    text eol=lf
+*.yaml   text eol=lf
+*.example text eol=lf
+
+# ── 语言识别（GitHub 仓库首页的语言占比统计）──
+*.py    linguist-language=Python
+*.html  linguist-language=HTML

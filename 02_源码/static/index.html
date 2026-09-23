@@ -853,7 +853,7 @@ function addError(msg){const d=document.createElement('div');d.className='msg bo
 // 三态色标（让「尚待核实」一眼可见，避免把历史报道误读为当前可用）
 const ST_CLASS = {'历史上有相关报道':'st1','公开页面介绍具备相关能力':'st2','目前是否可提供尚待核实':'st3'};
 
-function renderOutput(o){
+function renderOutput(o, env){
   let html='';
   const qc=o.query_condition||{};
   const cond=[qc.region,qc.hospital,qc.campus,qc.department,qc.resource,qc.title,qc.date].filter(Boolean).join(' · ');
@@ -903,6 +903,17 @@ function renderOutput(o){
       `</div>`;
   });
   if(!(o.info_basis||[]).length) html+='<div class="muted">（暂无）</div>';
+  // 赛题《基础需求5》③ 要求「信息依据」须含来源标题、链接、来源更新时间（如有）与**本次查询时间**。
+  // 这里给出「本次查询时间」：优先取后端检索留痕里的真实时间戳（= 本次查询发生的时刻，非渲染时刻）；
+  // 留痕缺失（如澄清轮/闲聊）时退回客户端当前时间。这样与「来源更新时间」是两件事、互不混淆。
+  let _qt='';
+  try{
+    const _l=(env&&env.retrieval_log)||[];
+    const _t=_l.map(x=>x&&x.timestamp).filter(Boolean).pop();
+    if(_t) _qt=String(_t).replace('T',' ');
+  }catch(e){}
+  if(!_qt){const n=new Date(),p=x=>String(x).padStart(2,'0');_qt=`${n.getFullYear()}-${p(n.getMonth()+1)}-${p(n.getDate())} ${p(n.getHours())}:${p(n.getMinutes())}:${p(n.getSeconds())}`;}
+  html+=`<div class="upd">本次查询时间：${esc(_qt)}</div>`;
   html+='</div>';
 
   html+=`<div class="seg"><div class="lab"><i class="n">4</i>使用提示</div><ul class="tips">`;
@@ -1003,7 +1014,7 @@ function renderEnvelope(env){
     // 闲聊/寒暄（非医疗域）：不套 4 段式卡片，直接当普通回复显示
     html+=`<div>${esc(((env.output||{}).usage_tips||[]).join('\n'))}</div>`;
   }else{
-    html+=renderOutput(env.output||{});
+    html+=renderOutput(env.output||{}, env);
   }
   html+=renderLogs(env);
   d.innerHTML=html;chat.appendChild(d);scroll();

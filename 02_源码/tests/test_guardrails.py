@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""护栏层测试（Step 5）：Validator 规则 R1~R10 + 反射式打回循环（N=2）。
+"""护栏层测试（Step 5）：Validator 规则 R1~R13 + 反射式打回循环（N=2）。
 
 全部离线、无网络：
 - Validator 用「手工构造的 4 段式」直接喂进校验器，逐条验证触发/不误报；
@@ -72,7 +72,7 @@ def rules_of(output, msg, log):
     return r.rules, r
 
 
-print("────────── 一、Validator 规则 R1~R10（离线） ──────────")
+print("────────── 一、Validator 规则 R1~R13（离线） ──────────")
 
 # U1 R1 结构完备：空壳（无查询条件、无提示、无结果）
 _r1, _res1 = rules_of(mk_output(tips=[], qc=None), "昆明哪家医院有心内科", [])

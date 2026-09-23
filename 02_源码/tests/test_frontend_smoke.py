@@ -95,6 +95,11 @@ def check_index():
     assert "target=\"_blank\"" in js, "index.html 来源链接未在新标签打开（U3 回归）"
     assert "class=\"warn\"" in js, "index.html 缺少冲突提示高亮 class（U3 回归）"
     assert "_cfx" in js, "index.html 缺少冲突信号词检测（U3 与 A3 联动）"
+    # 赛题《基础需求5》③：信息依据须含「来源更新时间（如有）」**与「本次查询时间」**——两者是不同概念。
+    # 「来源更新时间」由 Source.updated_note 承载；「本次查询时间」由本次检索留痕时间戳渲染，故两处都要在。
+    assert "本次查询时间" in js, "index.html 缺少「本次查询时间」（赛题 基础需求5 ③ 明确要求）"
+    assert "renderOutput(o, env)" in js, "index.html 的 renderOutput 未接收 env（本次查询时间取不到检索留痕）"
+    assert "updated_note" in js or "b.note" in js, "index.html 未渲染来源更新时间说明（赛题 基础需求5 ③ 要求）"
     # 布局契约：应用级操作（历史/密钥/重置）在顶栏工具区，底栏只做输入
     assert "class=\"tools\"" in js, "index.html 缺少顶栏工具区 .tools（布局契约）"
     assert "class=\"composer\"" in js, "index.html 缺少独立输入区 .composer（布局契约）"

@@ -10,7 +10,7 @@ services:
       - "8137:8137"
     environment:
       # 搜索走【免密钥】公开检索，无需任何搜索 Key；填入模型 Key 即升级为「真检索 + 模型生成」。
-      # 留空 OPC_LLM_API_KEY 则骨架模式运行（仍可真联网检索，只是不接模型）。
+      # 留空 OPC_LLM_API_KEY 则进入待配置模式（不发起检索、不调模型，页面给出配置引导）。
       - OPC_ENV=prod
       - OPC_SEARCH_BACKENDS=${OPC_SEARCH_BACKENDS:-so360,mso360,sogou,sm}
       - OPC_SEARCH_BUDGET_SECONDS=${OPC_SEARCH_BUDGET_SECONDS:-18}

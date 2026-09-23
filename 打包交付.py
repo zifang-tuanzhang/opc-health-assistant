@@ -33,6 +33,11 @@ EXCLUDE_FILE_PATTERNS = (
     "*.pyc", "*.pyo", ".env", "*.local.json", "keys.json", "*.log",
     ".DS_Store", "*.bak", "*.orig", "*.tmp",
 )
+# 测试记录目录下的过程日志：**允许随包**，作为「测试记录」的可读原始输出证据
+# （赛题《基础需求7·测试记录》要求逐组记录含「截图或日志」）。
+# 例外：cp310轮子下载.log 含本机绝对路径（不必要的本机痕迹），仍按 *.log 排除。
+ALLOW_LOG_UNDER = ("03_测试记录",)
+DENY_LOG_NAMES = ("cp310轮子下载.log",)
 # 除上述外，再硬性拦一道"疑似密钥文件"（中文文件名也覆盖）
 SECRET_NAME_HINTS = ("密钥", "secret", "credential", "token", "apikey", "api_key")
 
@@ -101,10 +106,14 @@ MUST_HAVE = [
     "02_源码/tests/fixtures/sm_昆明_抗蛇毒血清_医院.html",
     # 测试证据
     "03_测试记录/离线全测汇总_20260923.json",
-    # 十套统一入口的全量汇总（含「真直连」两层断言设计 + 三态判定 + 第四轮/退化环境变异结果）
-    # ⚠️ 原始逐行日志是 *.log，被 EXCLUDE_FILE_PATTERNS 按设计排除；故这份汇总必须随包，
-    #    否则「10 套全过」在包内缺一份可读证据。
+    # 统一入口的全量汇总 + 原始逐行日志（日志作为可读的原始输出证据随包，与汇总互为印证；
+    # 赛题《基础需求7·测试记录》接受「截图或日志」，故这些证据必须在包内落得住）。
     "03_测试记录/全量测试汇总_20260923.md",
+    "03_测试记录/全量测试日志_20260923.log",
+    "03_测试记录/全量测试日志_20260923_闭环后.log",
+    "03_测试记录/实网三套_清洗后_20260923.log",
+    "03_测试记录/实网复跑_20260923_1645.log",
+    "03_测试记录/闭环扫描基线_20260923.log",
     "03_测试记录/截图/验收_G2_抗蛇毒血清三态.png",
     "03_测试记录/截图/验收_G4_用药边界.png",
     "03_测试记录/截图/验收_G5_紧急120.png",
@@ -115,6 +124,10 @@ def should_skip(rel: Path) -> bool:
     if set(rel.parts) & EXCLUDE_DIRS:
         return True
     name = rel.name
+    # 测试记录目录下的过程日志允许入包（可读的原始输出证据）；含本机路径的那一份仍排除。
+    if rel.suffix.lower() == ".log":
+        if rel.parts and rel.parts[0] in ALLOW_LOG_UNDER and name not in DENY_LOG_NAMES:
+            return False
     if any(fnmatch.fnmatch(name, p) for p in EXCLUDE_FILE_PATTERNS):
         return True
     low = name.lower()

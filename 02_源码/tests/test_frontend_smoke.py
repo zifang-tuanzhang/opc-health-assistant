@@ -10,6 +10,7 @@
 """
 from __future__ import annotations
 
+import re
 import sys
 from html.parser import HTMLParser
 from pathlib import Path
@@ -94,6 +95,18 @@ def check_index():
     assert "target=\"_blank\"" in js, "index.html 来源链接未在新标签打开（U3 回归）"
     assert "class=\"warn\"" in js, "index.html 缺少冲突提示高亮 class（U3 回归）"
     assert "_cfx" in js, "index.html 缺少冲突信号词检测（U3 与 A3 联动）"
+    # 布局契约：应用级操作（历史/密钥/重置）在顶栏工具区，底栏只做输入
+    assert "class=\"tools\"" in js, "index.html 缺少顶栏工具区 .tools（布局契约）"
+    assert "class=\"composer\"" in js, "index.html 缺少独立输入区 .composer（布局契约）"
+    assert "id=\"histList\"" in js, "index.html 缺少历史抽屉列表容器 #histList"
+    assert "id=\"scrim\"" in js, "index.html 缺少抽屉遮罩 #scrim"
+    # 接线闭环：JS 中 $('xxx') 引用的每个 id 必须真实存在于本页 HTML。
+    # 这条防的是「改了 id 却漏改 JS」——那种错浏览器不报错，只是在运行时静默失效。
+    body = js[js.index("<body>"): js.index("<script>")]
+    html_ids = set(re.findall(r'\bid="([^"]+)"', body))
+    js_ids = set(re.findall(r"""\$\(\s*['"]([^'"]+)['"]\s*\)""", js))
+    dangling = sorted(js_ids - html_ids)
+    assert not dangling, f"index.html 中 JS 引用了不存在的 id（接线断裂）：{dangling}"
     print("[PASS] index.html 结构健康：容器齐全 + 渲染函数完好 + A4 对比视图 + B1 历史记录 + B2 筛选 + U3 来源新标签/冲突高亮均在位")
 
 

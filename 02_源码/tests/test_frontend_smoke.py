@@ -100,6 +100,18 @@ def check_index():
     assert "class=\"composer\"" in js, "index.html 缺少独立输入区 .composer（布局契约）"
     assert "id=\"histList\"" in js, "index.html 缺少历史抽屉列表容器 #histList"
     assert "id=\"scrim\"" in js, "index.html 缺少抽屉遮罩 #scrim"
+    # 过程时间线收拢：回答产出后必须把过程留痕收起，否则整块留痕会长期占据版面
+    assert "function settleProgress" in js, "index.html 缺少 settleProgress（过程时间线不会收拢）"
+    # 注意：必须匹配到「带分号的调用」而不是函数定义行（function settleProgress(prog){），
+    # 否则调用点被删掉、定义还在，断言会假通过（已用反向验证确认）。
+    assert js.count("settleProgress(prog);") >= 2, \
+        f"index.html 未在回答产出/失败分支调用 settleProgress（实际 {js.count('settleProgress(prog);')} 处）"
+    assert "prog.done" in js and "prog-sum" in js, "index.html 缺少过程时间线收拢态样式"
+    # 右上角密钥入口：常驻胶囊（已配置/未配置两态）+ 首次进入主动引导
+    assert "class=\"keypill\"" in js, "index.html 缺少右上角密钥入口胶囊（.keypill）"
+    assert "id=\"keyLabel\"" in js and "id=\"keyAct\"" in js, "index.html 密钥入口缺少动态文案节点"
+    assert "function maybeIntro" in js, "index.html 缺少首次进入引导（maybeIntro）"
+    assert "opc_intro_seen_v1" in js, "index.html 缺少首次引导的本地标记（会反复弹出打扰用户）"
     # 接线闭环：JS 中 $('xxx') 引用的每个 id 必须真实存在于本页 HTML。
     # 这条防的是「改了 id 却漏改 JS」——那种错浏览器不报错，只是在运行时静默失效。
     body = js[js.index("<body>"): js.index("<script>")]

@@ -1,7 +1,7 @@
 {
-  "started_at": "2026-09-24 00:30:59",
-  "finished_at": "2026-09-24 00:30:59",
-  "total_seconds": 0.097,
+  "started_at": "2026-09-24 00:55:09",
+  "finished_at": "2026-09-24 00:55:10",
+  "total_seconds": 0.091,
   "env": "离线注入版（假模型 + 假检索；不打网络、不需密钥）",
   "passed": 8,
   "total": 8,
@@ -16,8 +16,8 @@
       "expect": "触发检索；≥3 项结果逐项列出；每条带合法 http 来源",
       "actual": "检索=True，结果=3 条，来源合法=True",
       "passed": true,
-      "at": "00:30:59",
-      "seconds": 0.027
+      "at": "00:55:09",
+      "seconds": 0.026
     },
     {
       "id": "G2",
@@ -26,7 +26,7 @@
       "expect": "医生条目含科室/职称/擅长领域 + 合法来源；无疗效承诺或排名",
       "actual": "医生条目=2，含职称=True，含科室=True，含擅长=True，无承诺/排名=True，来源合法=True",
       "passed": true,
-      "at": "00:30:59",
+      "at": "00:55:09",
       "seconds": 0.003
     },
     {
@@ -36,8 +36,8 @@
       "expect": "断言性出诊被打回并改写为待核实；引导官方挂号渠道",
       "actual": "打回=1 轮，已消除断言=True，含官方挂号引导=True",
       "passed": true,
-      "at": "00:30:59",
-      "seconds": 0.004
+      "at": "00:55:09",
+      "seconds": 0.003
     },
     {
       "id": "G4",
@@ -46,8 +46,8 @@
       "expect": "同会话承接上下文；改条件后以新条件为准；不同会话相互隔离；提供重置方式",
       "actual": "会话id稳定=True，上下文承接=True，会话隔离=True（检测函数自检=True），重置生效=True",
       "passed": true,
-      "at": "00:30:59",
-      "seconds": 0.017
+      "at": "00:55:09",
+      "seconds": 0.016
     },
     {
       "id": "G5",
@@ -56,7 +56,7 @@
       "expect": "结果为空；明确「暂未查到」；不断言「没有」；给官方核实渠道",
       "actual": "结果空=True，含「暂未查到」=True，未断言「没有」=True，含官方渠道=True",
       "passed": true,
-      "at": "00:30:59",
+      "at": "00:55:09",
       "seconds": 0.003
     },
     {
@@ -66,7 +66,7 @@
       "expect": "缺三态→R9 打回 1 轮→补标三态后通过",
       "actual": "打回=1 轮，三态齐全=True",
       "passed": true,
-      "at": "00:30:59",
+      "at": "00:55:09",
       "seconds": 0.003
     },
     {
@@ -76,7 +76,7 @@
       "expect": "越界用药建议被拦，改为拒答 + 引导就医",
       "actual": "打回=1 轮，安全=True",
       "passed": true,
-      "at": "00:30:59",
+      "at": "00:55:09",
       "seconds": 0.003
     },
     {
@@ -86,8 +86,8 @@
       "expect": "响应含全部约定字段；首次返回新 session_id；回传后承接；异常态有 error_code",
       "actual": "约定字段全=True，4段式全=True，回传承接=True，异常态=True，已标注模拟范围=True",
       "passed": true,
-      "at": "00:30:59",
-      "seconds": 0.009
+      "at": "00:55:09",
+      "seconds": 0.007
     },
     {
       "id": "A1",
@@ -96,7 +96,7 @@
       "expect": "紧急症状必须出现 120 提示",
       "actual": "打回=1 轮，含120=True",
       "passed": true,
-      "at": "00:30:59",
+      "at": "00:55:09",
       "seconds": 0.003
     },
     {
@@ -106,7 +106,7 @@
       "expect": "mode=chat 且不出现「未查到」检索话术",
       "actual": "mode=chat，查询条件=None，含检索话术=False",
       "passed": true,
-      "at": "00:30:59",
+      "at": "00:55:10",
       "seconds": 0.003
     },
     {
@@ -116,7 +116,7 @@
       "expect": "ok=false 且带 error_code，含完整 output 包裹层",
       "actual": "ok=False，error_code=TOO_LONG",
       "passed": true,
-      "at": "00:30:59",
+      "at": "00:55:10",
       "seconds": 0.002
     },
     {
@@ -126,7 +126,7 @@
       "expect": "mode=need_key / ok=false / 提示添加密钥",
       "actual": "mode=need_key，error_code=NEED_KEY",
       "passed": true,
-      "at": "00:30:59",
+      "at": "00:55:10",
       "seconds": 0.002
     },
     {
@@ -136,8 +136,8 @@
       "expect": "未给城市 → 直接按昆明检索，不进入澄清、不追问城市",
       "actual": "检索=1次，region='昆明'，need_clarification=False",
       "passed": true,
-      "at": "00:30:59",
-      "seconds": 0.004
+      "at": "00:55:10",
+      "seconds": 0.003
     },
     {
       "id": "A6",
@@ -146,7 +146,7 @@
       "expect": "缺科室→模型声明need_clarification不检索；补科室后检索出结果",
       "actual": "第1轮检索=1,clarify=True；第2轮检索=1,结果=1",
       "passed": true,
-      "at": "00:30:59",
+      "at": "00:55:10",
       "seconds": 0.005
     },
     {
@@ -156,8 +156,8 @@
       "expect": "模型任意措辞声明need_clarification=true即触发澄清，且不被追问城市",
       "actual": "clarify=True，提示含城市/地区=False",
       "passed": true,
-      "at": "00:30:59",
-      "seconds": 0.002
+      "at": "00:55:10",
+      "seconds": 0.003
     }
   ]
 }

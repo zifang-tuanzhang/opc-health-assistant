@@ -501,8 +501,8 @@ def validate_output(
     # 白名单只来自「真实检索命中」（由编排层按 session 累计传入），非模型自填，安全。
     if known_urls:
         retrieved_urls.update(_normalize_url(u) for u in known_urls if u)
-    if retrieved_urls and output.query_results:
-        for i, r in enumerate(output.query_results):
+    if retrieved_urls:
+        for i, r in enumerate(output.query_results or []):
             u = (r.source.url if r.source else "") or ""
             if u.strip() and _normalize_url(u) not in retrieved_urls:
                 violations.append(
@@ -510,6 +510,18 @@ def validate_output(
                         "R13",
                         f"query_results[{i}].source.url",
                         f"第{i + 1}条引用的来源链接不在本轮检索命中内（可能来自检索内容的诱导或编造）：{u}",
+                    )
+                )
+        # info_basis 也带 url（4 段式第③段），必须同口径对账；
+        # 否则被诱导的模型可把伪造来源塞进 info_basis 绕过 R13（该字段同样对用户可见）。
+        for i, b in enumerate(getattr(output, "info_basis", None) or []):
+            u = (getattr(b, "url", "") or "").strip()
+            if u and _normalize_url(u) not in retrieved_urls:
+                violations.append(
+                    Violation(
+                        "R13",
+                        f"info_basis[{i}].url",
+                        f"第{i + 1}条信息依据的链接不在本轮检索命中内（可能来自检索内容的诱导或编造）：{u}",
                     )
                 )
 

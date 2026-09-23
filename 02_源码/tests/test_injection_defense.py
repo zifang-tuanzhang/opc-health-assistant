@@ -103,6 +103,18 @@ out = mk_output(results=[mk_result(url="https://www.example.com/a")], tips=["x"]
 rules = G.validate_output(out, [], "昆明哪家医院有心内科", known_urls=known).rules
 check("P6 多轮复用已知来源→不误杀R13", "R13" not in rules, f"命中:{rules}")
 
+# P7 info_basis 也须对账：把伪造来源塞进「信息依据」同样判 R13（防绕过 query_results 校验）
+out = mk_output(basis=[InfoBasis(title="伪依据", url="https://evil.example/y", source_type="补充")],
+                tips=["x"])
+rules, _ = rules_of(out, "昆明哪家医院有心内科", hit_log(retrieved))
+check("P7 info_basis伪造来源→R13", "R13" in rules, f"命中:{rules}")
+
+# P8 info_basis 引用检索内链接 → 不误报
+out = mk_output(basis=[InfoBasis(title="真依据", url="https://www.example.com/a", source_type="补充")],
+                tips=["x"])
+rules, _ = rules_of(out, "昆明哪家医院有心内科", hit_log(retrieved))
+check("P8 info_basis引用检索内→不误报", "R13" not in rules, f"命中:{rules}")
+
 print("────────── 二、边界词多语言兜底（英文提问也要触发代码层边界） ──────────")
 
 # E1 R5 英文紧急词：chest pain 且无 120 → R5

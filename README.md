@@ -34,13 +34,16 @@
 **方式 A：Git 克隆（推荐）**
 
 ```bash
-git clone <本仓库地址>
-cd OPC接单吧第三届实战能力大赛
+git clone https://github.com/zifang-tuanzhang/opc-health-assistant.git
+cd opc-health-assistant
 ```
 
 **方式 B：不使用 Git**
 
 在仓库页面点击 **`Code`** → **`Download ZIP`** → 解压到任意目录（路径含中文亦可）。
+
+> 两种方式得到的目录名不同（克隆为 `opc-health-assistant`，下载 ZIP 为 `opc-health-assistant-main`），
+> 内部结构与内容完全一致，后续步骤不受影响。
 
 ---
 

@@ -69,6 +69,16 @@ async def _exc_handler(request: Request, exc: Exception):
 # ─────────────────────────── 小程序 / curl 稳定契约 ───────────────────────────
 
 
+def _live_mode() -> str:
+    """错误信封的运行模式：如实反映当前密钥配置状态（与 /health 的 key_configured 同口径）。
+
+    为什么不让 schema 写死默认值：错误信封的 ``mode`` 会被小程序与评审直接读到，
+    必须落在接口文档声明的枚举内（``agent`` / ``chat`` / ``need_key``），
+    不得出现文档未定义的占位值。
+    """
+    return "agent" if keystore.is_configured() else "need_key"
+
+
 @app.post("/chat", response_model=ResponseEnvelope)
 def chat(req: ChatRequest, request: Request) -> ResponseEnvelope:
     """一次请求 → 一个 4 段式信封（小程序 wx.request 直接可用）。
@@ -86,14 +96,16 @@ def chat(req: ChatRequest, request: Request) -> ResponseEnvelope:
     ok, code, hint = guard.validate_message(text)
     if not ok:
         return make_error_envelope(
-            req.session_id or "(未生成)", code or "INVALID_INPUT", hint or "输入不合法。"
+            req.session_id or "(未生成)", code or "INVALID_INPUT", hint or "输入不合法。",
+            mode=_live_mode(),
         )
 
     # 2) 网关级限流
     key = guard.client_key(request, req.session_id)
     if not guard.rate_limiter.allow(key):
         return make_error_envelope(
-            req.session_id or "(未生成)", "RATE_LIMIT", "请求过于频繁，请稍后再试。"
+            req.session_id or "(未生成)", "RATE_LIMIT", "请求过于频繁，请稍后再试。",
+            mode=_live_mode(),
         )
 
     # 3) 编排（真实循环：模型当控制器 + 真联网检索 + 4 段式 + 护栏打回）
@@ -135,7 +147,8 @@ async def chat_stream(req: ChatRequest, request: Request):
     if not ok:
         return _sse_once(
             make_error_envelope(
-                req.session_id or "(未生成)", code or "INVALID_INPUT", hint or "输入不合法。"
+                req.session_id or "(未生成)", code or "INVALID_INPUT", hint or "输入不合法。",
+                mode=_live_mode(),
             )
         )
 
@@ -143,7 +156,8 @@ async def chat_stream(req: ChatRequest, request: Request):
     if not guard.rate_limiter.allow(key):
         return _sse_once(
             make_error_envelope(
-                req.session_id or "(未生成)", "RATE_LIMIT", "请求过于频繁，请稍后再试。"
+                req.session_id or "(未生成)", "RATE_LIMIT", "请求过于频繁，请稍后再试。",
+                mode=_live_mode(),
             )
         )
 

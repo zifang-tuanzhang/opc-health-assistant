@@ -111,7 +111,7 @@ class ResponseEnvelope(BaseModel):
     retrieval_log: List[RetrievalLogEntry] = Field(default_factory=list, description="检索过程留痕")
     reflection_count: int = Field(0, description="反射式打回轮数（编排层实际写入）")
     degraded: bool = Field(False, description="是否降级输出（护栏超限/检索失败）")
-    mode: str = Field("live", description="运行模式：skeleton(骨架) / agent(真模型+搜索) / need_key(未配密钥)")
+    mode: str = Field("agent", description="运行模式：agent(真模型+真实检索) / chat(非医疗域闲聊) / need_key(未配模型密钥：不发起检索、不调模型，直接返回配置引导)")
     note: Optional[str] = Field(None, description="附加说明（如降级原因）")
 
 
@@ -119,7 +119,7 @@ def make_error_envelope(
     session_id: str,
     error_code: str,
     hint: str,
-    mode: str = "skeleton",
+    mode: str = "agent",
     degraded: bool = True,
 ) -> ResponseEnvelope:
     """构造「失败信封」的唯一口径。

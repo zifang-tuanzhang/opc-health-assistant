@@ -183,6 +183,12 @@ check("C4 error-body-shape", body["ok"] is False and body["error_code"] == "TEST
       and body["output"]["usage_tips"] == ["提示语"],
       "与 ResponseEnvelope 同形状（前端统一读 output.*）")
 
+# C5 错误信封的 mode 必须落在接口文档声明的枚举内。
+# 回归背景：error_body 曾写死 "skeleton"——一个接口文档从未声明的占位值，
+# 评审按赛题要求测「超长输入」时会直接读到它，属契约不一致。
+_MODE_ENUM = {"agent", "chat", "need_key"}
+check("C5 err-mode-in-enum", body["mode"] in _MODE_ENUM, f"mode={body['mode']!r}")
+
 # ───────────────────────── D. llm_client：环境变量回落分支 ─────────────────────────
 _ak = config.LLM_API_KEY
 _mdl = config.LLM_MODEL
@@ -292,6 +298,12 @@ check("F3 reset-gate-pass-200", bool(_enf) and _enf["reset_ok"] == 200, str(_enf
 check("F4 history-gate-pass-200", bool(_enf) and _enf["history_ok"] == 200, str(_enf))
 check("F5 keys-gate-403", bool(_enf) and _enf["keys_no"] == 403, str(_enf))
 check("F6 keys-gate-business-400", bool(_enf) and _enf["keys_ok"] == 400, str(_enf))
+
+# F7 端到端：输入非法（超长）时的错误信封，mode 同样必须落在契约枚举内
+_j7 = client.post("/chat", json={"message": "阿" * (config.MAX_MESSAGE_LEN + 50)}).json()
+check("F7 err-mode-enum-e2e",
+      _j7.get("mode") in _MODE_ENUM and _j7.get("error_code") == "TOO_LONG" and _j7.get("ok") is False,
+      f"mode={_j7.get('mode')!r} code={_j7.get('error_code')!r}")
 
 print(f"\n===== 运行保障与网关边界测试：通过 {passed} / 失败 {failed} =====")
 if failed:

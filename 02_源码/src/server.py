@@ -70,8 +70,17 @@ async def _exc_handler(request: Request, exc: Exception):
 
 
 @app.post("/chat", response_model=ResponseEnvelope)
-async def chat(req: ChatRequest, request: Request) -> ResponseEnvelope:
-    """一次请求 → 一个 4 段式信封（小程序 wx.request 直接可用）。"""
+def chat(req: ChatRequest, request: Request) -> ResponseEnvelope:
+    """一次请求 → 一个 4 段式信封（小程序 wx.request 直接可用）。
+
+    ⚠️ 此处必须是**同步 def**，不能改成 async def。
+    ``orchestrator.run_turn`` 是同步阻塞实现（内部要联网检索 + 调用模型），
+    若在 async def 里直接调用，会**占住整个事件循环**：实测表现为
+    「一旦有人提问，同一进程内的 /health、静态页、其他人的请求全部无响应」，
+    直到本轮回答产出为止（联网慢时可达数十秒）。
+    写成同步 def 后，FastAPI 会自动把它放入线程池执行，事件循环始终可用。
+    这与 /chat/stream 的做法一致——后者也用 run_in_executor 把 run_turn 移出事件循环。
+    """
     # 1) 输入护栏（左侧可硬编码）：清洗 + 空/超长/危险协议
     text = guard.sanitize_input(req.message)
     ok, code, hint = guard.validate_message(text)

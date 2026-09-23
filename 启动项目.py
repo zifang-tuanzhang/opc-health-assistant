@@ -158,17 +158,27 @@ def venv_python() -> Path:
 
 
 def bootstrap_venv(py: str) -> None:
-    if not VENV.exists():
+    first_run = not VENV.exists()
+    if first_run:
         log("info", "首次运行：创建虚拟环境 .venv ...")
         subprocess.run([py, "-m", "venv", str(VENV)], check=True)
     vpy = venv_python()
-    # 升级 pip
-    subprocess.run([str(vpy), "-m", "pip", "install", "--quiet", "--upgrade", "pip"],
-                   capture_output=True, text=True)
+    # 升级 pip：只在【首次建环境】时尝试，且限时短、不重试。
+    # 动因（2026-09-24 复现评审方流程时实测）：旧版每次启动都执行联网升级 pip，
+    # 无网/弱网环境下 pip 的重试退避会让「双击后迟迟不出浏览器」。而本项目依赖
+    # 全部来自仓库内 wheels/，venv 自带的 pip 已足以安装，这一步纯属可选增强，
+    # 不应阻塞启动。
+    if first_run:
+        subprocess.run(
+            [str(vpy), "-m", "pip", "install", "--quiet", "--disable-pip-version-check",
+             "--timeout", "8", "--retries", "0", "--upgrade", "pip"],
+            capture_output=True, text=True,
+        )
     # 优先离线安装（闭环），失败回退在线
     log("info", "安装依赖（优先离线 wheels）...")
     offline = subprocess.run(
-        [str(vpy), "-m", "pip", "install", "--no-index", "--find-links", str(WHEELS), "-r", str(REQ)],
+        [str(vpy), "-m", "pip", "install", "--no-index", "--disable-pip-version-check",
+         "--find-links", str(WHEELS), "-r", str(REQ)],
         capture_output=True, text=True,
     )
     if offline.returncode != 0:

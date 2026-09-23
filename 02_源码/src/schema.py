@@ -90,7 +90,7 @@ class OutputContract(BaseModel):
 
 
 class RetrievalLogEntry(BaseModel):
-    """检索过程留痕（独立展示，不混入答案；评审核查点）。"""
+    """检索过程留痕（独立展示，不混入答案；核验点）。"""
 
     action: str = Field(..., description="动作：search（联网检索）/ guardrail（护栏判定）")
     query: str = Field("", description="检索词")

@@ -72,7 +72,7 @@ async def _exc_handler(request: Request, exc: Exception):
 def _live_mode() -> str:
     """错误信封的运行模式：如实反映当前密钥配置状态（与 /health 的 key_configured 同口径）。
 
-    为什么不让 schema 写死默认值：错误信封的 ``mode`` 会被小程序与评审直接读到，
+    为什么不让 schema 写死默认值：错误信封的 ``mode`` 会被小程序与使用者直接读到，
     必须落在接口文档声明的枚举内（``agent`` / ``chat`` / ``need_key``），
     不得出现文档未定义的占位值。
     """
@@ -140,7 +140,7 @@ async def chat_stream(req: ChatRequest, request: Request):
 
     事件序列示例：session → analyze → search(calling) → search(ok/empty,hit_count)
     → generate → guardrail → done/final。前端据此展示「正在联网检索…命中 N 条…」，
-    让评审**看得见**过程（DoD：检索中状态可见）。小程序等不便用 SSE 的端仍用 /chat。
+    让使用者**看得见**过程（DoD：检索中状态可见）。小程序等不便用 SSE 的端仍用 /chat。
     """
     text = guard.sanitize_input(req.message)
     ok, code, hint = guard.validate_message(text)

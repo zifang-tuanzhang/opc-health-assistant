@@ -147,7 +147,7 @@ def error_body(code: str, hint: str, session_id: Optional[str] = None) -> dict:
         "reflection_count": 0,
         "degraded": True,
         # 如实反映当前运行模式（与 /health 同口径）：未配密钥=need_key，已配=agent。
-        # 不用占位值——错误信封的 mode 会被小程序/评审直接读到，必须落在契约枚举内。
+        # 不用占位值——错误信封的 mode 会被小程序与使用者直接读到，必须落在契约枚举内。
         "mode": "agent" if keystore.is_configured() else "need_key",
         "note": code,
     }

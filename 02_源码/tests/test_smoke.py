@@ -15,7 +15,7 @@ import tempfile
 from pathlib import Path
 
 # 项目内的 src 包位置：由本文件位置推导，绝不写死绝对路径
-# （交付包会被评审解压到任意目录，写死路径会导致测试直接崩，或更糟——静默测到别的目录的源码）
+# （交付包会被解压到任意目录，写死路径会导致测试直接崩，或更糟——静默测到别的目录的源码）
 BASE = str(Path(__file__).resolve().parent.parent)   # tests/ 的上一级 = 02_源码/
 sys.path.insert(0, BASE)
 

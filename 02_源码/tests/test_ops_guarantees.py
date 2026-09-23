@@ -185,7 +185,7 @@ check("C4 error-body-shape", body["ok"] is False and body["error_code"] == "TEST
 
 # C5 错误信封的 mode 必须落在接口文档声明的枚举内。
 # 回归背景：error_body 曾写死 "skeleton"——一个接口文档从未声明的占位值，
-# 评审按赛题要求测「超长输入」时会直接读到它，属契约不一致。
+# 按赛题要求测试「超长输入」时会直接读到它，属契约不一致。
 _MODE_ENUM = {"agent", "chat", "need_key"}
 check("C5 err-mode-in-enum", body["mode"] in _MODE_ENUM, f"mode={body['mode']!r}")
 

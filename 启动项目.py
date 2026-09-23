@@ -164,7 +164,7 @@ def bootstrap_venv(py: str) -> None:
         subprocess.run([py, "-m", "venv", str(VENV)], check=True)
     vpy = venv_python()
     # 升级 pip：只在【首次建环境】时尝试，且限时短、不重试。
-    # 动因（2026-09-24 复现评审方流程时实测）：旧版每次启动都执行联网升级 pip，
+    # 动因（2026-09-24 实测）：旧版每次启动都执行联网升级 pip，
     # 无网/弱网环境下 pip 的重试退避会让「双击后迟迟不出浏览器」。而本项目依赖
     # 全部来自仓库内 wheels/，venv 自带的 pip 已足以安装，这一步纯属可选增强，
     # 不应阻塞启动。

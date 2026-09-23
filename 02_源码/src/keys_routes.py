@@ -1,6 +1,6 @@
 """密钥相关路由：预设列表、自动扫描状态、添加并校验连接。
 
-这就是评审「免翻文件添加密钥」的入口——
+这即是使用者「无需翻找文件即可添加密钥」的入口——
 - GET  /api/providers   预设厂商下拉清单
 - GET  /api/keys/status  后端自动扫描外部密钥库的结果（连没连上）
 - POST /api/keys/add     选厂商 + 粘贴密钥 → 后端真连一次验证 → 写入外部库
@@ -74,7 +74,7 @@ def api_add(req: AddKeyRequest, request: Request):
 
     ok, msg = llm_client.test_connection(api_key, base_url, model)
     if not ok:
-        # 连接失败：不写入，明确告诉评审原因
+        # 连接失败：不写入，明确告知使用者原因
         raise HTTPException(status_code=400, detail=msg)
 
     keystore.upsert_provider(req.provider_id, api_key, model)

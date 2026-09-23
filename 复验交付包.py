@@ -92,7 +92,7 @@ with zipfile.ZipFile(ZIP) as zf:
     #   通用"长十六进制串"规则会把两类合法内容判成密钥——
     #     ① 本包自带的 SHA256 摘要（tests/fixtures/_采集记录.json 里为证物留的校验值）；
     #     ② 抓取来的公开网页快照里，页面自身携带的随机十六进制 token（sogou_sample.html）。
-    #   这两类都不是我们的密钥。若把它们也判失败，闸门就会长期"响着红灯"——
+    #   这两类均非本项目的密钥。若一并判为失败，闸门会长期误报——
     #   一个总在误报的闸门会被忽略，反而削弱真实防护。故本项降级为提示。
     #   真正的硬防护是：① 与真实密钥逐字比对；② sk- 前缀等"凭证形态"模式；③ 敏感文件黑名单。
     hard_hits: list[str] = []
@@ -131,7 +131,7 @@ with zipfile.ZipFile(ZIP) as zf:
         print("      %s" % h)
     if soft_hits:
         print("      人工复核提示（非失败项）：%d 处疑似长十六进制串，" % len(soft_hits))
-        print("        多为 SHA256 校验值或公开网页快照自带的 token，请人工确认非我方凭证：")
+        print("        多为 SHA256 校验值或公开网页快照自带的 token，请人工确认非本项目凭证：")
         for h in soft_hits:
             print("      %s" % h)
     if hard_hits:

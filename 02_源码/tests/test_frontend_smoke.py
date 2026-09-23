@@ -6,7 +6,7 @@
 前端一旦写错（标签未闭合、关键函数被误删）肉眼难发现。
 故用 html.parser 做「结构健康」确定性校验：解析不抛异常 + 关键元素存在。
 
-不判断「长得对不对」（那是视觉/评审的事），只判断「结构没坏、关键契约还在」。
+不判断「长得对不对」（属视觉核验范畴），只判断「结构没坏、关键契约还在」。
 """
 from __future__ import annotations
 
@@ -108,7 +108,7 @@ def check_index():
     # 过程时间线收拢：回答产出后必须把过程留痕收起，否则整块留痕会长期占据版面
     assert "function settleProgress" in js, "index.html 缺少 settleProgress（过程时间线不会收拢）"
     # 注意：必须匹配到「带分号的调用」而不是函数定义行（function settleProgress(prog){），
-    # 否则调用点被删掉、定义还在，断言会假通过（已用反向验证确认）。
+    # 否则调用点被删掉、定义还在，断言会误判通过（已用反向验证确认）。
     assert js.count("settleProgress(prog);") >= 2, \
         f"index.html 未在回答产出/失败分支调用 settleProgress（实际 {js.count('settleProgress(prog);')} 处）"
     assert "prog.done" in js and "prog-sum" in js, "index.html 缺少过程时间线收拢态样式"

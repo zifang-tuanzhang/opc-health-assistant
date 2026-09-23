@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*-
 """U2 澄清轮稳健性 · 聚焦回归测试（离线可复跑）。
 
-目的（守「判断优先于指令 / 不硬编码台词」铁律）：
+目的（守「判断优先于指令 / 不写死话术」约束）：
   U2 澄清机制已字段化（need_clarification + clarify_for），G6/G7 已覆盖基础路径。
   本文件在基础上额外锁定两类易回归点，且不新增任何脆弱兜底：
     U2a  厂商歧义澄清：用户问法隐含多个厂商/供应商可能时，模型可声明
          need_clarification=true、clarify_for="厂商"，系统正确识别为澄清轮（不检索）。
     U2b  任意 clarify_for 值透传：clarify_for 是开放 Optional[str]，**不绑定任何固定词表**；
          模型可写明任意缺失条件类别（如"就诊时间"），schema 不报错且原样透传——
-         这正是"给判断不给台词"的硬验证（若某天有人把它改回枚举/词表，本测试立刻挂）。
-    U2c  前端零硬编码澄清台词：index.html 不出现任何具体澄清问句（如"请问您要查哪个厂商"），
+         这正是"由模型判断、不写死话术"的硬验证（若某天有人把它改回枚举/词表，本测试立刻挂）。
+    U2c  前端零硬编码澄清话术：index.html 不出现任何具体澄清问句（如"请问您要查哪个厂商"），
          澄清完全由模型输出的 usage_tips 承载（字段驱动渲染）。
 
 运行：激活 venv 后 python tests/test_clarify_regression.py
@@ -139,11 +139,11 @@ check("U2b 任意clarify_for值透传(开放字段)", okb,
       f"clarify_for={r_b['output'].get('clarify_for')}（若被改回枚举则此处校验失败）")
 uninstall()
 
-# ─────────────────────── U2c 前端零硬编码澄清台词 ───────────────────────
+# ─────────────────────── U2c 前端零硬编码澄清话术 ───────────────────────
 js = (pathlib.Path(__file__).resolve().parent.parent / "static" / "index.html").read_text(encoding="utf-8")
 _hardcoded = ["请问您要查哪个厂商", "请问您要查哪个城市", "厂商是", "请问您需要补充"]
 okc = not any(h in js for h in _hardcoded)
-check("U2c 前端零硬编码澄清台词", okc,
+check("U2c 前端零硬编码澄清话术", okc,
       "index.html 不含具体澄清问句（澄清完全由 usage_tips 字段驱动渲染）")
 
 # ─────────────────────── 汇总 ───────────────────────

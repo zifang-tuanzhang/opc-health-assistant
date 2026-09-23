@@ -4,7 +4,7 @@
 base_url 调。
 
 连接信息解析顺序（:func:`_resolve_connection`）：
-  1. **外部密钥库**（主路径）：评审在网页「添加密钥」写入
+  1. **外部密钥库**（主路径）：使用者在网页「添加密钥」写入
      ``%USERPROFILE%\\.opc_health\\keys.json``，密钥不进仓库；
   2. **环境变量回落**：容器 / CI / 无用户目录场景用 ``OPC_LLM_API_KEY`` 等；
      二者同时存在时密钥库优先。
@@ -32,7 +32,7 @@ def _direct_http_client(timeout: float) -> httpx.Client:
     """构造【忽略环境代理】的 HTTP 客户端（直连纪律）。
 
     与 src/search.py 的 ``_get()`` 同源问题：httpx 与 openai SDK 默认读取进程环境里的
-    ``HTTP(S)_PROXY``。本机 / 评审机上若残留代理或 VPN 出口（例如调试用代理未关），
+    ``HTTP(S)_PROXY``。本机或使用者机器上若残留代理或 VPN 出口（例如调试用代理未关），
     模型调用会被带到非预期出口，表现为连接失败、超时，甚至被误读成「没配密钥」的假故障；
     而国内厂商网关（如 DashScope）直连本就通畅。故此处一律直连，不读环境代理。
     """

@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 """一键打包交付包：把整个项目打成可直接交付的 ZIP。
 
-铁律（与项目密钥纪律一致）：
+打包原则（与项目密钥纪律一致）：
 - **绝不把密钥打进去**：`.env` / `*.local.json` / 任何 `keys.json` 一律排除；
 - **必须把离线依赖打进去**：`wheels/` 保留（这是"不联网也能装起来"的闭环）；
-- 排除虚拟环境与缓存（`.venv` / `.venv_test` / `__pycache__` 等），保持包体干净。
+- 排除虚拟环境与缓存（`.venv` / `.venv_test` / `__pycache__` 等），控制包体体积。
 
 用法：
     双击本文件，或  python 打包交付.py
@@ -67,11 +67,11 @@ MUST_HAVE = [
     "02_源码/tests/test_acceptance_8groups.py", "02_源码/tests/test_authenticity.py",
     "02_源码/tests/test_adversarial.py", "02_源码/tests/test_adversarial2.py",
     "02_源码/tests/test_search_parsers.py",
-    # 间接提示注入防御（R13）与编排层注入连线（本轮安全加固新增，必须随包）
+    # 间接提示注入防御（R13）与编排层注入连线（安全加固新增项，必须随包）
     "02_源码/tests/test_injection_defense.py",
     "02_源码/tests/test_orchestrator_injection_wiring.py",
     "02_源码/tests/生成8组表格.py",
-    # 检索层离线测试样本（真实页面快照 + 采集脚本，保证测试可复跑、不被质疑编造）
+    # 检索层离线测试样本（真实页面快照 + 采集脚本，保证测试可复跑、结果可核验）
     "02_源码/tests/fixtures/采集样本.py",
     "02_源码/tests/fixtures/_采集mso360.py",
     "02_源码/tests/fixtures/_采集记录.json",
@@ -79,7 +79,7 @@ MUST_HAVE = [
     "02_源码/tests/fixtures/m_so360_sample.html",
     "02_源码/tests/fixtures/so360_block_sample.html",
     "02_源码/tests/fixtures/baidu_block_sample.html",
-    # 方案与测试记录（评审查阅用）
+    # 方案与测试记录（随包提供，供查阅）
     "01_需求与方案/使用与架构说明_赛题逐项对照_2026-09-21.md",
     "01_需求与方案/赛题原文_提取_2026-09-21.txt",
     "01_需求与方案/小程序接口_2026-09-21.md",
@@ -93,8 +93,8 @@ MUST_HAVE = [
     "03_测试记录/检索层风控与加固_2026-09-21.md",
     "03_测试记录/全量测试结果_20260921.json",
     "03_测试记录/交付包验收_2026-09-21.md",
-    # ── 进阶补齐批次新增的交付物与测试（此前漏在 MUST_HAVE 之外，包内没被守住）──
-    # 商业交付能力的兜底材料（需重点完善的维度，必须随包）
+    # ── 后续批次补充的交付物与测试（原先未列入 MUST_HAVE，缺少打包守护）──
+    # 商业交付能力材料（必须随包）
     "01_需求与方案/商业交付与落地说明_2026-09-22.md",
     # A5 模拟小程序界面页 + 前端断言 / 澄清回归测试
     "02_源码/static/便民就医助手_界面模拟.html",

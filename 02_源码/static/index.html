@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>AI 医院资源查询与便民就医助手</title>
+<style>
+  :root{
+    --bg:#0f1115; --panel:#171a21; --panel2:#1e2230; --line:#2a2f3a;
+    --text:#e6e9ef; --muted:#9aa3b2; --brand:#39c5cf; --brand2:#2a8f96;
+    --ok:#4caf50; --warn:#ffc107; --err:#f44336; --chip:#262b38;
+    --s1:#8b96a8; --s2:#39c5cf; --s3:#ffc107;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:"Microsoft YaHei","PingFang SC",system-ui,sans-serif;height:100vh;display:flex;flex-direction:column}
+  header{padding:14px 20px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:12px;background:var(--panel)}
+  header .logo{width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,var(--brand),var(--brand2));display:flex;align-items:center;justify-content:center;font-weight:700;color:#04141a}
+  header h1{font-size:16px;margin:0;font-weight:600}
+  header .sub{font-size:12px;color:var(--muted);margin-left:auto}
+  header .sub a{color:var(--brand);text-decoration:none}
+  .banner{padding:10px 20px;font-size:13px;display:none;align-items:center;gap:10px;border-bottom:1px solid var(--line)}
+  .banner.warn{display:flex;background:#2a2410;color:var(--warn)}
+  .banner.ok{display:flex;background:#10241a;color:var(--ok)}
+  .banner .btn{margin-left:auto}
+  #chat{flex:1;overflow-y:auto;padding:18px 20px;display:flex;flex-direction:column;gap:14px}
+  .msg{max-width:82%;padding:12px 14px;border-radius:12px;line-height:1.6;font-size:14px;white-space:pre-wrap;word-break:break-word}
+  .msg.user{align-self:flex-end;background:var(--brand2);color:#eafdff;border-bottom-right-radius:4px}
+  .msg.bot{align-self:flex-start;background:var(--panel2);border:1px solid var(--line);border-bottom-left-radius:4px;max-width:92%}
+  .seg{margin:8px 0;padding-left:2px}
+  .seg .lab{font-size:12px;color:var(--brand);margin-bottom:4px;letter-spacing:.5px}
+  .result{border:1px solid var(--line);border-radius:8px;padding:8px 10px;margin:6px 0;background:var(--panel)}
+  .result .name{font-weight:600;color:var(--text)}
+  .badge{font-size:11px;border-radius:6px;padding:1px 6px;margin-left:6px;border:1px solid var(--line);color:var(--muted)}
+  .badge.auth{border-color:var(--brand2);color:var(--brand)}
+  .badge.add{border-color:var(--line);color:var(--muted)}
+  .status{font-size:11px;margin:3px 0}
+  .st1{color:var(--s1)} .st2{color:var(--s2)} .st3{color:var(--s3)}
+  .result a{color:var(--brand);font-size:12px;word-break:break-all}
+  .result .upd{font-size:11px;color:var(--muted)}
+  .result .campus{font-size:11px;color:var(--muted)}
+  /* A4 横向比较视图 */
+  .cmp{margin:8px 0}
+  .cmp-btn{margin:6px 0 2px;font-size:12px;padding:6px 10px}
+  .cmp-table{border-collapse:collapse;width:100%;font-size:12px;margin-top:6px}
+  .cmp-table th,.cmp-table td{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top;line-height:1.5}
+  .cmp-table th{background:var(--panel2);color:var(--brand);position:sticky;top:0}
+  .cmp-table tbody tr:nth-child(even){background:rgba(255,255,255,.02)}
+  .cmp-table a{color:var(--brand);word-break:break-all}
+  /* B2 条件筛选控件：类型选项由当前结果集动态去重生成，绝不写死"公立=三甲"等分类 */
+  .filterbar{display:flex;gap:8px;margin:6px 0 8px;flex-wrap:wrap}
+  .filterbar select,.filterbar input{background:var(--panel2);color:var(--text);border:1px solid var(--line);border-radius:8px;padding:5px 8px;font-size:12px;font-family:inherit}
+  .filterbar input{flex:1;min-width:120px}
+  .filter-empty{margin:6px 0}
+  .tips{margin:6px 0 0;padding-left:18px;font-size:13px;color:var(--muted)}
+  .tips li.warn{color:var(--warn);font-weight:600;list-style:none;margin-left:-18px;padding-left:18px;border-left:3px solid var(--warn)}
+  .retro{font-size:11px;color:var(--muted);border-top:1px dashed var(--line);margin-top:8px;padding-top:6px}
+  .retro span{display:inline-block;background:var(--chip);border-radius:5px;padding:1px 6px;margin:2px 4px 2px 0}
+  .err-box{border:1px solid var(--err);background:#2a1414;border-radius:8px;padding:10px;font-size:13px}
+  .err-box .code{font-size:11px;color:var(--err);letter-spacing:.5px}
+  /* 过程时间线（流式进度：检索中可见） */
+  .prog{border-left:2px solid var(--line);margin:2px 0 8px;padding-left:10px}
+  .prog .row{font-size:12px;color:var(--muted);margin:2px 0;display:flex;gap:6px;align-items:baseline}
+  .prog .row .dot{width:7px;height:7px;border-radius:50%;background:var(--muted);flex:0 0 auto;position:relative;top:5px}
+  .prog .row.run .dot{background:var(--brand);animation:pulse 1s infinite}
+  .prog .row.ok .dot{background:var(--ok)}
+  .prog .row.warn .dot{background:var(--warn)}
+  @keyframes pulse{0%{opacity:.3}50%{opacity:1}100%{opacity:.3}}
+  footer{padding:12px 20px;border-top:1px solid var(--line);background:var(--panel);display:flex;gap:10px;align-items:flex-end}
+  textarea#input{flex:1;resize:none;height:46px;background:var(--panel2);border:1px solid var(--line);border-radius:10px;color:var(--text);padding:10px 12px;font-size:14px;font-family:inherit}
+  .btn{background:var(--brand2);color:#eafdff;border:none;border-radius:10px;padding:10px 16px;font-size:14px;cursor:pointer;font-family:inherit}
+  .btn:hover{background:var(--brand)}
+  .btn.ghost{background:transparent;border:1px solid var(--line);color:var(--muted)}
+  .btn.ghost:hover{color:var(--text);border-color:var(--brand)}
+  .btn:disabled{opacity:.5;cursor:not-allowed}
+  /* modal */
+  .overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;z-index:10}
+  .overlay.show{display:flex}
+  .modal{width:440px;max-width:92vw;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px}
+  .modal h3{margin:0 0 4px;font-size:16px}
+  .modal p.hint{margin:0 0 14px;font-size:12px;color:var(--muted)}
+  .field{margin:10px 0}
+  .field label{display:block;font-size:12px;color:var(--muted);margin-bottom:5px}
+  .field select,.field input,.field textarea{width:100%;background:var(--panel2);border:1px solid var(--line);border-radius:8px;color:var(--text);padding:9px 10px;font-size:13px;font-family:inherit}
+  .modal .row{display:flex;gap:10px;margin-top:14px}
+  .modal .row .btn{flex:1}
+  #addStatus{font-size:12px;margin-top:8px;min-height:16px}
+  .ok{color:var(--ok)} .err{color:var(--err)} .muted{color:var(--muted)}
+  /* B1 历史记录面板 */
+  .hist-panel{position:fixed;left:20px;right:20px;bottom:74px;max-height:52vh;overflow-y:auto;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px;display:none;z-index:9;box-shadow:0 -8px 24px rgba(0,0,0,.35)}
+  .hist-panel.show{display:block}
+  .hist-item{padding:9px 10px;border-radius:8px;cursor:pointer;border:1px solid transparent}
+  .hist-item:hover{background:var(--panel2);border-color:var(--line)}
+  .hist-item .q{font-size:13px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .hist-item .meta{font-size:11px;color:var(--muted);margin-top:2px}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">医</div>
+  <h1>AI 医院资源查询与便民就医助手</h1>
+  <div class="sub">演示城市：昆明 · 真实联网检索 · <a href="/static/小程序接口测试.html" target="_blank">小程序接口测试</a></div>
+</header>
+
+<div id="banner" class="banner"></div>
+<div id="chat"></div>
+
+<footer>
+  <textarea id="input" placeholder="例如：昆明哪家医院有抗蛇毒血清？ / 昆明医科大学第一附属医院心血管内科出诊？"></textarea>
+  <button class="btn ghost" id="keyBtn">添加密钥</button>
+  <button class="btn ghost" id="histBtn">历史记录</button>
+  <button class="btn ghost" id="resetBtn">重置会话</button>
+  <button class="btn" id="sendBtn">发送</button>
+</footer>
+
+<div id="historyPanel" class="hist-panel"></div>
+
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <h3>添加模型密钥</h3>
+    <p class="hint">密钥仅保存到本机用户目录（项目之外），不会随代码发出。提交后会自动校验连接。</p>
+    <div class="field">
+      <label>模型供应商</label>
+      <select id="providerSel"></select>
+    </div>
+    <div class="field">
+      <label>模型</label>
+      <select id="modelSel"></select>
+    </div>
+    <div class="field">
+      <label>API Key</label>
+      <input id="keyInput" type="password" placeholder="粘贴你的 API Key" />
+    </div>
+    <div id="addStatus"></div>
+    <div class="row">
+      <button class="btn ghost" id="cancelBtn">取消</button>
+      <button class="btn" id="saveKeyBtn">连接并保存</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const $ = (id)=>document.getElementById(id);
+const chat = $('chat');
+let sessionId = null;
+let busy = false;
+
+function esc(s){return (s==null?'':String(s)).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function scroll(){chat.scrollTop=chat.scrollHeight;}
+function addUser(text){const d=document.createElement('div');d.className='msg user';d.textContent=text;chat.appendChild(d);scroll();return d;}
+function addError(msg){const d=document.createElement('div');d.className='msg bot';d.innerHTML=`<div class="err-box"><div class="code">请求失败</div>${esc(msg)}</div>`;chat.appendChild(d);scroll();}
+
+// 三态色标（核心真实性得分点：让"尚待核实"一眼可见）
+const ST_CLASS = {'历史上有相关报道':'st1','公开页面介绍具备相关能力':'st2','目前是否可提供尚待核实':'st3'};
+
+function renderOutput(o){
+  let html='';
+  const qc=o.query_condition||{};
+  const cond=[qc.region,qc.hospital,qc.campus,qc.department,qc.resource,qc.title,qc.date].filter(Boolean).join(' · ');
+  if(cond) html+=`<div class="seg"><div class="lab">① 查询条件</div>${esc(cond)}</div>`;
+
+  const results=(o.query_results||[]);
+  html+=`<div class="seg"><div class="lab">② 查询结果</div>`;
+  if(!results.length){
+    html+='<div class="muted">（未查到可核验的结果）</div>';
+  }else{
+    // B2 条件筛选：类型选项由当前结果集**动态去重**生成（数据是 4 段式契约里的真实字段 r.type），
+    // 另加名称/说明自由文本搜索；二者皆不写死任何分类（如「公立=三甲」这类假设性映射严禁）。
+    const types=[...new Set(results.map(r=>r.type).filter(Boolean))];
+    html+=`<div class="filterbar"><select class="f-type" onchange="applyFilter(this)"><option value="">全部类型</option>`+
+      types.map(t=>`<option value="${escAttr(t)}">${esc(t)}</option>`).join('')+
+      `</select><input class="f-q" type="text" placeholder="搜索名称 / 说明…" oninput="applyFilter(this)"></div>`;
+    // 结果列表：每条带 data-type / data-q（名称+说明小写），供 applyFilter 纯前端筛选（零硬编码）
+    html+=`<div class="resultList">`;
+    results.forEach(r=>{
+      const s=r.source||{};
+      const q=(esc(r.name||'')+' '+(r.description||'')).toLowerCase();
+      html+=`<div class="result" data-type="${escAttr(r.type||'')}" data-q="${escAttr(q)}"><div class="name">${esc(r.name||'')}`+
+        (r.type?`<span class="badge add">${esc(r.type)}</span>`:'')+
+        (s.source_type?`<span class="badge ${s.source_type==='权威'?'auth':'add'}">${esc(s.source_type)}</span>`:'')+
+        `</div>`+
+        (r.campus?`<div class="campus">适用院区：${esc(r.campus)}</div>`:'')+
+        (r.info_status?`<div class="status ${ST_CLASS[r.info_status]||''}">信息状态：${esc(r.info_status)}</div>`:'')+
+        (r.description?`<div>${esc(r.description)}</div>`:'')+
+        (s.url?`<div><a href="${esc(s.url)}" target="_blank" rel="noopener">${esc(s.title||s.url)}</a></div>`:'')+
+        (s.updated_note?`<div class="upd">时效：${esc(s.updated_note)}</div>`:'')+
+        `</div>`;
+    });
+    html+='</div>';
+    // A4 横向比较视图：仅当结果 ≥2 条（对比才有意义）才给出入口；表格列由数据动态生成，不硬编码坐标/距离
+    // 数据通过（转义后的）data-res 内联到按钮自身，保证多轮对话里每条消息的对比视图读到的是"自己那次"的结果，不串消息
+    if(results.length>=2) html+=`<button class="btn ghost cmp-btn" type="button" data-res='${escAttr(JSON.stringify(results))}' onclick="toggleCompare(this)">📊 对比视图</button><div class="cmp" style="display:none"></div>`;
+  }
+  html+='</div>';
+
+  html+=`<div class="seg"><div class="lab">③ 信息依据</div>`;
+  (o.info_basis||[]).forEach(b=>{
+    html+=`<div class="result"><div class="name">${esc(b.title||'')}`+
+      (b.source_type?`<span class="badge ${b.source_type==='权威'?'auth':'add'}">${esc(b.source_type)}</span>`:'')+
+      `</div>`+
+      (b.url?`<div><a href="${esc(b.url)}" target="_blank" rel="noopener">${esc(b.url)}</a></div>`:'')+
+      (b.note?`<div class="upd">${esc(b.note)}</div>`:'')+
+      `</div>`;
+  });
+  if(!(o.info_basis||[]).length) html+='<div class="muted">（暂无）</div>';
+  html+='</div>';
+
+  html+=`<div class="seg"><div class="lab">④ 使用提示</div><ul class="tips">`;
+  // U3 冲突高亮：与 A3（R12 冲突提示护栏）联动。当某条提示本身携带「来源冲突/不一致」信号时，
+  // 视觉上加 warn 强调，让评审一眼看到"系统主动标了冲突"。这是**纯视觉辅助**——信号词读的是
+  // 模型在 A3 下自己写出的文本（judgment over instruction），不据此做逻辑硬判、不写死来源映射。
+  // 仅保留真正表示"冲突"的信号词（去掉"待核实/存疑"等易变资源通用词，否则每条提示都被高亮、失去区分度）
+  const _cfx=['冲突','不一致','矛盾','以官方为准'];
+  (o.usage_tips||[]).forEach(t=>{
+    const hit=_cfx.some(w=>t.includes(w));
+    html+=`<li${hit?' class="warn"':''}>${esc(t)}</li>`;
+  });
+  html+='</ul></div>';
+  return html;
+}
+
+// A4 横向比较视图：把多家医院同一资源并排比较。
+// ⚠️ 关键纪律：表格列完全由 output.query_results 动态生成，
+//    绝不写死"距离/坐标/评分"等系统并未真实计算的数据；只呈现来源里真实存在的字段
+//    （医院/院区/类型/信息状态/说明/来源），保证"对比"建立在可核验事实之上。
+function escAttr(s){return (s==null?'':String(s)).replace(/&/g,'&amp;').replace(/'/g,'&#39;').replace(/"/g,'&quot;');}
+function toggleCompare(btn){
+  const box=btn.nextElementSibling;
+  if(box.style.display==='none'){
+    let data=[]; try{ data=JSON.parse(btn.dataset.res||'[]'); }catch(e){ data=[]; }
+    box.style.display='block';
+    box.innerHTML=buildCompareTable(data);
+    btn.textContent='收起对比';
+  }else{
+    box.style.display='none'; box.innerHTML=''; btn.textContent='📊 对比视图';
+  }
+}
+function buildCompareTable(results){
+  // 列定义（标签, 取值字段）——纯数据驱动，新增字段只需在此追加，无需改渲染逻辑
+  const cols=[['name','医院'],['campus','院区'],['type','类型'],['info_status','信息状态'],['description','说明']];
+  let h='<table class="cmp-table"><thead><tr>';
+  cols.forEach(c=>h+='<th>'+c[1]+'</th>');
+  h+='<th>来源</th></tr></thead><tbody>';
+  (results||[]).forEach(r=>{
+    const s=r.source||{};
+    h+='<tr>';
+    h+='<td>'+esc(r.name||'')+'</td>';
+    h+='<td>'+esc(r.campus||'—')+'</td>';
+    h+='<td>'+esc(r.type||'—')+'</td>';
+    h+='<td class="'+(ST_CLASS[r.info_status]||'')+'">'+esc(r.info_status||'—')+'</td>';
+    h+='<td>'+esc(r.description||'—')+'</td>';
+    h+='<td>'+(s.url?'<a href="'+esc(s.url)+'" target="_blank" rel="noopener">'+esc(s.title||s.url)+'</a>':'—')+'</td>';
+    h+='</tr>';
+  });
+  h+='</tbody></table>';
+  return h;
+}
+
+// B2 条件筛选：纯前端，依据每条结果的 data-type / data-q 过滤，不写死任何分类。
+function applyFilter(elm){
+  const bar=elm.closest('.filterbar'); if(!bar) return;
+  const seg=bar.closest('.seg'); if(!seg) return;
+  const typeSel=bar.querySelector('.f-type'); const qInput=bar.querySelector('.f-q');
+  const typeVal=typeSel?typeSel.value:'';
+  const q=qInput?qInput.value.trim().toLowerCase():'';
+  const list=seg.querySelector('.resultList'); if(!list) return;
+  let shown=0;
+  list.querySelectorAll('.result').forEach(el=>{
+    const okType=!typeVal || (el.dataset.type||'')===typeVal;
+    const okQ=!q || (el.dataset.q||'').includes(q);
+    const ok=okType&&okQ;
+    el.style.display=ok?'':'none';
+    if(ok) shown++;
+  });
+  let note=seg.querySelector('.filter-empty');
+  if(shown===0){ if(!note){ note=document.createElement('div'); note.className='filter-empty muted'; note.textContent='（无匹配当前筛选条件的结果）'; list.after(note); } }
+  else if(note){ note.remove(); }
+}
+
+function renderLogs(env){
+  let html='';
+  const logs=env.retrieval_log||[];
+  const hhmm = (ts)=> (ts||'').length>=19 ? ts.slice(11,19) : '';
+  const rl=logs.filter(r=>r.action!=='guardrail').map(r=>
+    `<span>${esc(r.action)}: ${esc(r.query||'')} → ${esc(r.status||'')}${r.hit_count!=null?' ('+r.hit_count+')':''}${hhmm(r.timestamp)?' @'+hhmm(r.timestamp):''}</span>`).join('');
+  if(rl) html+=`<div class="retro">检索过程：${rl}</div>`;
+  const gl=logs.filter(r=>r.action==='guardrail').map(r=>`<span>${esc(r.status)}: ${esc(r.query||'')}</span>`).join('');
+  if(gl) html+=`<div class="retro">护栏留痕（打回 ${env.reflection_count||0} 轮）：${gl}</div>`;
+  if(env.degraded) html+=`<div class="retro" style="color:var(--warn)">⚠ 本次降级：${esc(env.note||'')}</div>`;
+  return html;
+}
+
+function renderEnvelope(env){
+  const d=document.createElement('div');d.className='msg bot';
+  let html='';
+  if(env.ok===false){
+    html+=`<div class="err-box"><div class="code">${esc(env.error_code||'ERROR')}</div>`+
+      esc((env.output&&env.output.usage_tips||[]).join(' ')||env.note||'请求未成功。')+`</div>`;
+  }else if(env.mode==='chat'){
+    // 闲聊/寒暄（非医疗域）：不套 4 段式卡片，直接当普通回复显示
+    html+=`<div>${esc(((env.output||{}).usage_tips||[]).join('\n'))}</div>`;
+  }else{
+    html+=renderOutput(env.output||{});
+  }
+  html+=renderLogs(env);
+  d.innerHTML=html;chat.appendChild(d);scroll();
+}
+
+// 过程时间线：把流式阶段事件渲染成"检索中→命中→生成→护栏"的可视轨迹
+function newProgress(){
+  const d=document.createElement('div');d.className='msg bot';
+  d.innerHTML='<div class="prog"></div>';
+  chat.appendChild(d);scroll();
+  return d.querySelector('.prog');
+}
+function progRow(prog,text,state){
+  const row=document.createElement('div');row.className='row '+(state||'');
+  row.innerHTML=`<span class="dot"></span><span>${esc(text)}</span>`;
+  prog.appendChild(row);scroll();
+  return row;
+}
+
+async function sendStream(txt, prog){
+  const r = await fetch('/chat/stream',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({message:txt,session_id:sessionId})});
+  if(!r.ok || !r.body) throw new Error('stream-unsupported');
+  const reader=r.body.getReader(); const dec=new TextDecoder(); let buf='';
+  let env=null;
+  while(true){
+    const {value,done}=await reader.read();
+    if(done) break;
+    buf+=dec.decode(value,{stream:true});
+    let idx;
+    while((idx=buf.indexOf('\n\n'))>=0){
+      const chunk=buf.slice(0,idx); buf=buf.slice(idx+2);
+      const line=chunk.split('\n').find(l=>l.startsWith('data:'));
+      if(!line) continue;
+      let ev; try{ev=JSON.parse(line.slice(5).trim());}catch(e){continue;}
+      if(ev.type==='session'){ sessionId=ev.session_id; }
+      else if(ev.type==='final'){ env=ev.envelope; }
+      else if(ev.type==='error'){ progRow(prog,'发生错误：'+ev.message,'warn'); }
+      else if(ev.type==='stage'){
+        const s=ev.stage;
+        if(s==='analyze') progRow(prog,'理解问题中…','run');
+        else if(s==='search' && ev.status==='calling') progRow(prog,`正在联网检索「${ev.query}」…`,'run');
+        else if(s==='search') progRow(prog,`检索完成：命中 ${ev.hit_count} 条`+(ev.hit_count?'':'（未检索到，将如实告知）'),ev.hit_count?'ok':'warn');
+        else if(s==='generate') progRow(prog,'正在组织 4 段式回答…','run');
+        else if(s==='clarify') progRow(prog,'信息不足，正在生成追问…','run');
+        else if(s==='guardrail' && ev.passed) progRow(prog,'结构校验通过 ✅','ok');
+        else if(s==='guardrail') progRow(prog,`护栏打回第 ${ev.round} 轮：${ev.summary||''}`,'warn');
+        else if(s==='need_key') progRow(prog,'尚未配置模型密钥','warn');
+        else if(s==='gate_denied') progRow(prog,'触发运行保障限制（'+ev.code+'）','warn');
+        else if(s==='error') progRow(prog,'上游错误（'+ev.code+'）','warn');
+        else if(s==='done') progRow(prog,'完成','ok');
+      }
+    }
+  }
+  if(!env) throw new Error('未收到最终结果');
+  return env;
+}
+
+async function send(){
+  if(busy) return;
+  const txt=$('input').value.trim(); if(!txt) return;
+  addUser(txt); $('input').value='';
+  busy=true; $('sendBtn').disabled=true;
+  const prog=newProgress();
+  progRow(prog,'已提交，准备处理…','run');
+  try{
+    let env=null;
+    try{ env=await sendStream(txt,prog); }
+    catch(e){
+      // 回落：不支持流式的环境走普通 /chat
+      progRow(prog,'流式不可用，改用普通请求…','warn');
+      const r=await fetch('/chat',{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({message:txt,session_id:sessionId})});
+      env=await r.json();
+    }
+    sessionId=env.session_id||sessionId;
+    renderEnvelope(env);
+    if(env.mode==='need_key') loadStatus();
+  }catch(e){ addError(e.message); }
+  finally{ busy=false; $('sendBtn').disabled=false; $('input').focus(); }
+}
+
+async function loadStatus(){
+  try{
+    const r=await fetch('/api/keys/status');const s=await r.json();
+    const b=$('banner');
+    if(s.configured){b.className='banner ok';b.innerHTML=`✔ 已连接：${esc(s.vendor||'')} / ${esc(s.model||'')} <button class="btn ghost" onclick="openModal()">更换密钥</button>`;}
+    else{b.className='banner warn';b.innerHTML=`⚠ 尚未配置模型密钥，无法联网回答。请点「添加密钥」<button class="btn ghost" onclick="openModal()">添加密钥</button>`;}
+  }catch(e){}
+}
+
+async function loadProviders(){
+  const r=await fetch('/api/keys/providers');const d=await r.json();
+  const sel=$('providerSel');sel.innerHTML='';
+  (d.providers||[]).forEach(p=>{const o=document.createElement('option');o.value=p.id;o.textContent=p.vendor;o.dataset.models=JSON.stringify(p.models||[]);o.dataset.def=p.default_model||'';sel.appendChild(o);});
+  fillModels();
+}
+function fillModels(){
+  const p=$('providerSel').selectedOptions[0];
+  const models=JSON.parse((p&&p.dataset.models)||'[]');
+  const def=(p&&p.dataset.def)||'';
+  const ms=$('modelSel');ms.innerHTML='';
+  models.forEach(m=>{const o=document.createElement('option');o.value=m;o.textContent=m;if(m===def)o.selected=true;ms.appendChild(o);});
+  if(!models.length){const o=document.createElement('option');o.value=def;o.textContent=def||'(默认)';ms.appendChild(o);}
+}
+
+function openModal(){loadProviders();$('overlay').classList.add('show');$('addStatus').textContent='';$('addStatus').className='';}
+function closeModal(){$('overlay').classList.remove('show');}
+
+async function saveKey(){
+  const pid=$('providerSel').value,key=$('keyInput').value.trim(),model=$('modelSel').value;
+  const st=$('addStatus');
+  if(!key){st.className='err';st.textContent='请粘贴 API Key';return;}
+  st.className='muted';st.textContent='正在校验连接…';
+  $('saveKeyBtn').disabled=true;
+  try{
+    const r=await fetch('/api/keys/add',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({provider_id:pid,api_key:key,model})});
+    const d=await r.json();
+    if(r.ok&&d.ok){st.className='ok';st.textContent=d.message;setTimeout(()=>{closeModal();loadStatus();},700);}
+    else{st.className='err';st.textContent=d.detail||'连接失败';}
+  }catch(e){st.className='err';st.textContent='请求失败：'+e.message;}
+  finally{$('saveKeyBtn').disabled=false;}
+}
+
+$('sendBtn').onclick=send;
+$('input').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send();}});
+$('keyBtn').onclick=openModal;
+$('cancelBtn').onclick=closeModal;
+$('saveKeyBtn').onclick=saveKey;
+$('providerSel').onchange=fillModels;
+$('resetBtn').onclick=async ()=>{
+  if(sessionId){try{await fetch('/reset',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({session_id:sessionId})});}catch(e){}}
+  sessionId=null;chat.innerHTML='';
+};
+
+// B1 历史记录：拉取过往会话清单；点击某条即切换到该 session（继续承接上下文）
+function fmtTime(ts){ if(!ts) return ''; const d=new Date(ts*1000); return d.toLocaleString('zh-CN',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}); }
+async function loadHistory(){
+  const p=$('historyPanel');
+  try{
+    const r=await fetch('/history'); const list=await r.json();
+    if(!list.length){ p.innerHTML='<div class="muted" style="padding:8px">暂无历史会话</div>'; }
+    else{
+      p.innerHTML=list.map(h=>`<div class="hist-item" data-sid="${esc(h.session_id)}"><div class="q">${esc(h.first_query||'(空对话)')}</div><div class="meta">${fmtTime(h.updated_at)} · ${h.turns} 轮</div></div>`).join('');
+      p.querySelectorAll('.hist-item').forEach(el=>{ el.onclick=()=>switchSession(el.dataset.sid); });
+    }
+  }catch(e){ p.innerHTML='<div class="err">加载失败：'+esc(e.message)+'</div>'; }
+  p.classList.toggle('show');
+}
+function switchSession(sid){
+  sessionId=sid; chat.innerHTML='';
+  const d=document.createElement('div'); d.className='msg bot';
+  d.innerHTML='<div class="muted">已切换到历史会话 '+esc(sid)+'，可继续追问，或点「重置会话」开启新对话。</div>';
+  chat.appendChild(d); scroll();
+  $('historyPanel').classList.remove('show');
+}
+$('histBtn').onclick=loadHistory;
+
+loadStatus();
+</script>
+</body>
+</html>

@@ -1,0 +1,70 @@
+{
+  "captured_query": "昆明哪家医院有抗蛇毒血清",
+  "records": [
+    {
+      "file": "sogou_sample.html",
+      "engine": "sogou",
+      "source_url": "https://www.sogou.com/web",
+      "query": "昆明哪家医院有抗蛇毒血清",
+      "params": {
+        "query": "昆明哪家医院有抗蛇毒血清"
+      },
+      "captured_at": "2026-09-21 (本机实测抓取，采集方法见 采集样本.py)",
+      "http_status": 200,
+      "bytes": 553544,
+      "sha256": "4ad16b83e0bc5c06d761232dfd5e531bcf85ece5efa0c5f181738257551589fb",
+      "page_title": "昆明哪家医院有抗蛇毒血清 - 搜狗搜索",
+      "h3_count": 9,
+      "looks_like_block_page": false
+    },
+    {
+      "file": "baidu_block_sample.html",
+      "engine": "baidu",
+      "source_url": "https://www.baidu.com/s",
+      "query": "昆明哪家医院有抗蛇毒血清",
+      "params": {
+        "wd": "昆明哪家医院有抗蛇毒血清"
+      },
+      "captured_at": "2026-09-21 (本机实测抓取，采集方法见 采集样本.py)",
+      "http_status": 200,
+      "bytes": 1518,
+      "sha256": "c07ad2077d116d75e5c4f168b3667e8f71409215887315660efb2be2a785caba",
+      "page_title": "百度安全验证",
+      "h3_count": 0,
+      "looks_like_block_page": true
+    },
+    {
+      "file": "so360_block_sample.html",
+      "engine": "so360",
+      "source_url": "https://www.so.com/s",
+      "query": "昆明哪家医院有抗蛇毒血清",
+      "params": {
+        "q": "昆明哪家医院有抗蛇毒血清"
+      },
+      "captured_at": "2026-09-21 (本机实测抓取，采集方法见 采集样本.py)",
+      "http_status": 200,
+      "bytes": 10703,
+      "sha256": "aaab80bae8459d3190798c6ea91473240f93c7b11f566c7e829bb9d894149eb5",
+      "page_title": "访问异常页面",
+      "h3_count": 0,
+      "looks_like_block_page": true
+    },
+    {
+      "file": "m_so360_sample.html",
+      "engine": "mso360",
+      "source_url": "https://m.so.com/s",
+      "query": "昆明 抗蛇毒血清 医院",
+      "params": {
+        "q": "昆明 抗蛇毒血清 医院"
+      },
+      "captured_at": "2026-09-21 (本机实测抓取，采集方法见 采集样本.py / _采集mso360.py)",
+      "http_status": 200,
+      "bytes": 359194,
+      "sha256": "2ae4e29e2ab404e9226a87eeade24d17a88b8b9336306890d0b4fab879709946",
+      "page_title": "昆明 抗蛇毒血清 医院_360搜索",
+      "h3_count": 12,
+      "looks_like_block_page": false,
+      "parsed_results": 10
+    }
+  ]
+}

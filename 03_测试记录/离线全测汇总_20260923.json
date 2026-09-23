@@ -1,0 +1,42 @@
+{
+  "passed": 6,
+  "total": 6,
+  "suites": [
+    {
+      "name": "冒烟测试",
+      "script": "test_smoke.py",
+      "passed": true,
+      "conclusion": "冒烟+密钥架构测试：通过 25 / 失败 0"
+    },
+    {
+      "name": "护栏层测试",
+      "script": "test_guardrails.py",
+      "passed": true,
+      "conclusion": "护栏层测试：通过 38 / 失败 0"
+    },
+    {
+      "name": "8 组验收测试",
+      "script": "test_acceptance_8groups.py",
+      "passed": true,
+      "conclusion": "8 组验收测试：通过 8 / 失败 0 ｜ 附加健壮性 7/7"
+    },
+    {
+      "name": "检索层解析（离线）",
+      "script": "test_search_parsers.py",
+      "passed": true,
+      "conclusion": "结论：通过  84/84 项通过"
+    },
+    {
+      "name": "前端结构冒烟",
+      "script": "test_frontend_smoke.py",
+      "passed": true,
+      "conclusion": "退出码 0"
+    },
+    {
+      "name": "澄清轮回归（U2）",
+      "script": "test_clarify_regression.py",
+      "passed": true,
+      "conclusion": "U2 澄清轮回归：通过 3 / 失败 0"
+    }
+  ]
+}

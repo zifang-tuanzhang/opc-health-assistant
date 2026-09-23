@@ -1,0 +1,22 @@
+# OPC 接单吧·AI 医院资源查询与便民就医助手 一键部署
+# 用法：docker compose up -d  →  访问 http://localhost:8137
+services:
+  opc-health:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+    container_name: opc-health
+    ports:
+      - "8137:8137"
+    environment:
+      # 搜索走【免密钥】公开检索，无需任何搜索 Key；填入模型 Key 即升级为「真检索 + 模型生成」。
+      # 留空 OPC_LLM_API_KEY 则骨架模式运行（仍可真联网检索，只是不接模型）。
+      - OPC_ENV=prod
+      - OPC_SEARCH_BACKENDS=${OPC_SEARCH_BACKENDS:-so360,mso360,sogou,sm}
+      - OPC_SEARCH_BUDGET_SECONDS=${OPC_SEARCH_BUDGET_SECONDS:-18}
+      - OPC_LLM_API_KEY=${OPC_LLM_API_KEY:-}
+      - OPC_LLM_BASE_URL=${OPC_LLM_BASE_URL:-}
+      - OPC_LLM_MODEL=${OPC_LLM_MODEL:-}
+      - OPC_RATE_LIMIT_PER_MIN=300
+      - OPC_LLM_RATE_LIMIT_PER_MIN=${OPC_LLM_RATE_LIMIT_PER_MIN:-30}
+    restart: unless-stopped

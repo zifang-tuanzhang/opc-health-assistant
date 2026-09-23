@@ -1,0 +1,56 @@
+{
+  "generated_at": "2026-09-21（实网三套的逐条留痕见同目录 真实性证据 / 对抗提示词自测）",
+  "reproduce": "cd 02_源码 && python 跑全部测试.py            # 全部七套\ncd 02_源码 && python 跑全部测试.py --offline  # 仅离线四套（不需网络、不需密钥）",
+  "network_required": [
+    "真实性取证（实网）",
+    "对抗提示词·话术型（实网）",
+    "对抗提示词·结构型（实网）"
+  ],
+  "note": "离线四套任何机器可复跑；实网三套要求当时网络可达 + 已配模型 Key，且在搜索引擎限流期间可能失败（会走诚实降级分支，不会编造来源）。断言总数：离线 127 项（冒烟 21 + 护栏 30 + 8组 8 + 附加健壮性 7 + 检索层 61）+ 实网 5 + 对抗 15 条 = 147 项。注：离线四套结论为 2026-09-21 本轮修复后实测；实网三套为同日上一轮实测快照（本轮未改动其覆盖范围）。",
+  "passed": 7,
+  "total": 7,
+  "suites": [
+    {
+      "name": "冒烟测试",
+      "script": "test_smoke.py",
+      "passed": true,
+      "conclusion": "冒烟+密钥架构测试：通过 21 / 失败 0"
+    },
+    {
+      "name": "护栏层测试",
+      "script": "test_guardrails.py",
+      "passed": true,
+      "conclusion": "护栏层测试：通过 30 / 失败 0"
+    },
+    {
+      "name": "8 组验收测试",
+      "script": "test_acceptance_8groups.py",
+      "passed": true,
+      "conclusion": "8 组验收测试：通过 8 / 失败 0 ｜ 附加健壮性 7/7"
+    },
+    {
+      "name": "检索层解析（离线）",
+      "script": "test_search_parsers.py",
+      "passed": true,
+      "conclusion": "结论：通过  61/61 项通过"
+    },
+    {
+      "name": "真实性取证（实网）",
+      "script": "test_authenticity.py",
+      "passed": true,
+      "conclusion": "真实性取证：通过 5 / 失败 0"
+    },
+    {
+      "name": "对抗提示词·话术型（实网）",
+      "script": "test_adversarial.py",
+      "passed": true,
+      "conclusion": "对抗提示词自测：守住 7 / 被突破 0"
+    },
+    {
+      "name": "对抗提示词·结构型（实网）",
+      "script": "test_adversarial2.py",
+      "passed": true,
+      "conclusion": "第二轮对抗：守住 8 / 被突破 0"
+    }
+  ]
+}

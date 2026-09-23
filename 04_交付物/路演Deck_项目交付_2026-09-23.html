@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AI 医院资源查询与便民就医助手 · 项目路演 Deck</title>
+<style>
+  :root{--bg:#0e1116;--panel:#161b22;--panel2:#1d242e;--line:#2a323d;--text:#e6edf3;--muted:#9aa7b4;--brand:#39c5cf;--brand2:#1f8a93;--ok:#46d39a;--warn:#e8b339;--err:#ff6b6b}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:"PingFang SC","Microsoft YaHei",system-ui,sans-serif;height:100vh;overflow:hidden}
+  .stage{height:100vh;display:flex;flex-direction:column}
+  .slide{flex:1;display:none;padding:54px 72px;overflow:auto}
+  .slide.active{display:block}
+  .kicker{color:var(--brand);font-size:14px;letter-spacing:2px;font-weight:600;margin-bottom:14px}
+  h1{font-size:40px;line-height:1.25;margin:0 0 18px}
+  h2{font-size:30px;margin:0 0 18px}
+  .lead{font-size:18px;color:var(--muted);max-width:900px;line-height:1.7}
+  .cards{display:grid;grid-template-columns:repeat(2,1fr);gap:18px;margin-top:24px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px 22px}
+  .card h3{margin:0 0 8px;font-size:18px;color:var(--brand)}
+  .card p{margin:0;color:var(--muted);font-size:14px;line-height:1.6}
+  .pill{display:inline-block;background:var(--panel2);border:1px solid var(--line);border-radius:999px;padding:4px 12px;font-size:13px;color:var(--muted);margin:0 8px 8px 0}
+  .pill.ok{color:var(--ok);border-color:var(--ok)}
+  .pill.warn{color:var(--warn);border-color:var(--warn)}
+  ul.t{margin:14px 0 0;padding-left:20px;line-height:1.8;font-size:16px;max-width:920px}
+  ul.t li{margin:6px 0}
+  .big{font-size:26px;color:var(--brand);font-weight:700}
+  .dim{color:var(--muted)}
+  .footer{display:flex;align-items:center;justify-content:space-between;padding:14px 72px;border-top:1px solid var(--line);background:var(--panel)}
+  .nav button{background:var(--brand2);color:#eafdff;border:none;border-radius:9px;padding:9px 18px;font-size:14px;cursor:pointer;font-family:inherit;margin-left:8px}
+  .nav button:disabled{opacity:.4;cursor:not-allowed}
+  .counter{color:var(--muted);font-size:13px}
+  .notes{background:var(--panel);border:1px dashed var(--line);border-radius:12px;padding:14px 18px;margin-top:22px;font-size:14px;color:var(--muted);line-height:1.7}
+  .notes b{color:var(--text)}
+  .logo{position:fixed;top:18px;right:24px;font-size:12px;color:var(--muted)}
+  .hl{color:var(--brand)}
+</style>
+</head>
+<body>
+<div class="logo">OPC 第三届 · 项目路演</div>
+<div class="stage">
+  <!-- 1 封面 -->
+  <section class="slide active">
+    <div class="kicker">OPC 接单吧 · 第三届实战能力大赛</div>
+    <h1>AI 医院资源查询与便民就医助手<br><span class="hl">真联网 · 诚实护栏 · 零编造</span></h1>
+    <p class="lead">面向「昆明市民查医院资源」真实场景的便民就医助手：真实联网检索、来源可核验、结构诚实、绝不给用户编造一个查不到的事实。本 Deck 讲清我们<span class="hl">为什么是第一</span>。</p>
+    <div style="margin-top:28px">
+      <span class="pill ok">真联网检索</span><span class="pill ok">来源可核验</span>
+      <span class="pill ok">R1–R12 结构性护栏</span><span class="pill ok">4 段式诚实输出</span>
+      <span class="pill">同名消歧 / 冲突提示</span><span class="pill">对比视图 / 历史 / 筛选</span>
+    </div>
+    <div class="notes"><b>讲稿：</b>开场 30 秒定调——我们不是又一个"套模板答医疗"的 Demo，而是把「查得到、说得清、不骗人」三件事做扎实的便民就医助手。一句话记住主线：真联网 + 诚实护栏 + 零编造。评审记住这三个词就够了。</div>
+  </section>
+
+  <!-- 2 痛点 -->
+  <section class="slide">
+    <div class="kicker">为什么做</div>
+    <h2>便民就医的三类真痛点</h2>
+    <div class="cards">
+      <div class="card"><h3>信息分散</h3><p>同一类资源（如抗蛇毒血清）散在新闻、政府公开栏、医院官网，用户要翻多个站才能拼出"哪家有"。</p></div>
+      <div class="card"><h3>信息过期</h3><p>易变资源（血清库存、出诊排班）时效性强，旧报道当"现在有"会误事——这是医疗场景最危险的坑。</p></div>
+      <div class="card"><h3>难核验</h3><p>回答不标来源，用户无法判断"这话说的是哪家、哪天、可靠吗"，信任建立不起来。</p></div>
+      <div class="card"><h3>混淆风险</h3><p>同名医院多院区、不同来源说法冲突，混在一起答会直接误导就医决策。</p></div>
+    </div>
+    <div class="notes"><b>讲稿：</b>不要念卡片，用「抗蛇毒血清」一个例子串起来——被蛇咬了的人最怕的是"搜到的说有、跑到却没有"。我们的产品就是冲着这四类痛点去的。强调：过期与混淆是医疗场景的"高危区"，也是评审最看重的真实性质疑点。</div>
+  </section>
+
+  <!-- 3 方案 -->
+  <section class="slide">
+    <div class="kicker">我们怎么做</div>
+    <h2>真联网检索 + 4 段式诚实结构化输出</h2>
+    <ul class="t">
+      <li><b>真联网</b>：编排层把用户问题转成检索式，<span class="hl">真实调用搜索引擎</span>（so360 / mso360 / sogou 三同族瀑布回退 + 神马独立源），不是预置答案。</li>
+      <li><b>4 段式契约</b>：①查询条件 ②查询结果 ③信息依据 ④使用提示——结构固定、字段完备、来源必填。</li>
+      <li><b>诚实三态</b>：每条资源标「历史上有相关报道 / 公开页面介绍具备相关能力 / 目前是否可提供尚待核实」，把"不确定"显式说出来。</li>
+      <li><b>零编造</b>：查不到就明说"未查到"，绝不补一个看似合理的假结果；无密钥时走 need_key 降级而非编造。</li>
+    </ul>
+    <div class="notes"><b>讲稿：</b>核心是"4 段式"——它既是给用户的阅读结构，也是给系统的校验契约。强调"零编造"：很多医疗助手失误在"答得像个专家但查无此据"，我们用结构性护栏从根上堵死（见下一页）。</div>
+  </section>
+
+  <!-- 4 差异化1 护栏 -->
+  <section class="slide">
+    <div class="kicker">核心差异化 ①</div>
+    <h2>诚实护栏 R1–R12：把"不骗人"写进架构</h2>
+    <div class="cards">
+      <div class="card"><h3>R1–R3 边界 / 拒答 / 紧急提示</h3><p>非医疗域礼貌拒绝；涉诊断开药等越界请求不答；命中毒蛇咬伤等紧急情况先给急救提示。</p></div>
+      <div class="card"><h3>R4–R6 来源必填 / 禁断言 / 诚实标注</h3><p>每条结果必须有可核验来源 URL；不替代医生做诊断断言；无结果如实标注。</p></div>
+      <div class="card"><h3>R7–R9 易变资源三态 / 院区纪律</h3><p>抗蛇毒血清等易变资源强制三态标注；不同院区地址/科室/排班不得混用。</p></div>
+      <div class="card"><h3>R10–R12 院区 / 同名消歧 / 冲突提示</h3><p>同名多家逐条标院区；多来源冲突主动提示"以官方为准"。</p></div>
+    </div>
+    <div class="notes"><b>讲稿：</b>这是我们的"护城河"。第二届失分根因是"硬编码冒充查询"，我们用 R1–R12 结构性校验（字段完备/来源必填/边界拒答/紧急提示/禁断言/诚实标注/检索真实性/院区纪律/同名消歧/冲突提示）从架构级堵死。演示时可点开"护栏留痕"看打回轮数，证明真在跑。</div>
+  </section>
+
+  <!-- 5 差异化2 进阶 -->
+  <section class="slide">
+    <div class="kicker">核心差异化 ②</div>
+    <h2>超出基础的进阶能力展示</h2>
+    <div class="cards">
+      <div class="card"><h3>A2 同名医院 / 院区自动消歧</h3><p>多后端返回同名多家时，逐条标注所属院区与地址，不混用（与 R10 呼应）。</p></div>
+      <div class="card"><h3>A3 多来源冲突自动提示</h3><p>同一事实不同来源说法不一致时，主动高亮"来源间存在冲突，以官方为准"。</p></div>
+      <div class="card"><h3>A4 横向比较视图</h3><p>结果页"对比视图"把多家医院同资源并排比；表格列完全由数据动态生成，不硬编码距离/坐标。</p></div>
+      <div class="card"><h3>B1 历史记录 / B2 条件筛选</h3><p>可回看过往会话；结果按类型动态筛选 + 名称/说明搜索，降低信息过载。</p></div>
+    </div>
+    <div class="notes"><b>讲稿：</b>基础分大家都拿得到，区分度在进阶。重点讲 A2/A3：同名消歧与冲突提示是"真联网多源"才暴露的真实问题，多数 Demo 静态数据根本遇不到。这恰好证明我们是真在跑多后端真实检索。</div>
+  </section>
+
+  <!-- 6 架构 -->
+  <section class="slide">
+    <div class="kicker">技术架构</div>
+    <h2>编排层 + 护栏层 + 多后端检索（抗限流独立性）</h2>
+    <ul class="t">
+      <li><b>编排层</b>：把问题→检索式→生成→护栏打回的循环跑通，含流式进度与反射重试。</li>
+      <li><b>护栏层</b>：R1–R12 作为生成后结构性校验，不合格打回重组织，判据来自字段不来自词表。</li>
+      <li><b>检索独立性</b>：so360/mso360/sogou 同族瀑布回退，叠加<span class="hl">神马（m.sm.cn）独立源</span>——独立限流桶，避免"同族一起被风控"的伪冗余。</li>
+      <li><b>密钥零落盘</b>：用户模型密钥走外部密钥箱，源码发货不含任何密钥值；无密钥走诚实降级。</li>
+    </ul>
+    <div class="notes"><b>讲稿：</b>讲"独立性"——这是稳定性关键。三个 360 同族后端一旦 IP 被风控会一起挂，等于没备份；神马是阿里/UC 独立运营的不同限流桶，实测为本机真实可达的独立源。一句话：我们为"生产级稳定"专门加了独立源。</div>
+  </section>
+
+  <!-- 7 测试证据 -->
+  <section class="slide">
+    <div class="kicker">测试与证据</div>
+    <h2>226 项断言全过（十套） · 实网真实性取证 · 两轮对抗自测</h2>
+    <div style="margin-top:10px">
+      <span class="pill ok">冒烟+密钥架构</span><span class="pill ok">护栏层 R1–R12</span>
+      <span class="pill ok">8 组验收（输入/预期/实际/通过）</span><span class="pill ok">检索层解析（离线 fixtures）</span>
+      <span class="pill ok">前端结构冒烟</span><span class="pill ok">澄清轮回归</span>
+      <span class="pill ok">实网真实性取证</span><span class="pill ok">两轮对抗提示词自测</span>
+    </div>
+    <ul class="t">
+      <li>离线七套确定性断言全绿，任意机器可复跑（注入假模型/假检索，断言行为不断言具体事实）。</li>
+      <li>实网真机版：真实检索 + 真实模型产出"逐组记录"证据（含执行时刻与耗时），非截图凑数。</li>
+      <li>对抗自测：用"话术型 + 结构型"两类对抗提示词主动攻击，验证护栏不被绕过。</li>
+    </ul>
+    <div class="notes"><b>讲稿：</b>这是最硬的一页。强调"实网真实性取证"——我们的测试不是 mock 自己通过的，而是真联网跑出真实来源再断言结构。对抗自测证明：评委拿对抗提示词来测，我们也守得住。具体数字以现场跑出的汇总为准。</div>
+  </section>
+
+  <!-- 8 商业交付 -->
+  <section class="slide">
+    <div class="kicker">商业交付能力</div>
+    <h2>谁采购 · 怎么部署 · 成本结构 · 场景契合</h2>
+    <div class="cards">
+      <div class="card"><h3>采购方</h3><p>地市级卫健委 / 便民服务平台 / 医院导诊台 / 县域医共体——把"查资源"能力嵌进现有便民入口。</p></div>
+      <div class="card"><h3>部署路径</h3><p>一键启动包（容器化），接入方自带模型密钥即可，源码不含密钥；可私有化部署在政务内网。</p></div>
+      <div class="card"><h3>成本结构</h3><p>检索免密钥（公开源）；仅模型调用按量计费；无爬虫运维成本。边际成本随调用量线性、可控。</p></div>
+      <div class="card"><h3>场景契合</h3><p>与"便民就医"赛题高度契合：解决信息分散/过期/难核验，且不替代医生诊断，合规边界清晰。</p></div>
+    </div>
+    <div class="notes"><b>讲稿：</b>商业交付是本届薄弱维度，我们专门补了《商业交付与落地说明》。讲清"采购方不是个人用户，是平台方"，部署是"接入口+自带密钥"，成本是"检索免费、模型按量"。一句话：能落地、能算账。</div>
+  </section>
+
+  <!-- 9 演示动线 -->
+  <section class="slide">
+    <div class="kicker">路演演示动线</div>
+    <h2>4 分钟现场跑一遍（建议顺序）</h2>
+    <ul class="t">
+      <li><b>①</b> 问「昆明哪家医院有抗蛇毒血清？」→ 看真实检索过程留痕 + 三态诚实标注。</li>
+      <li><b>②</b> 点「对比视图」→ 多家医院并排比，来源可点。</li>
+      <li><b>③</b> 问一个多来源冲突的点 → 看 A3 冲突高亮"以官方为准"。</li>
+      <li><b>④</b> 问一个歧义问题（如"帮我找专家"缺科室）→ 看澄清轮不检索、追问字段。</li>
+      <li><b>⑤</b> 点「历史记录」→ 回看刚才的会话，证明多轮承接。</li>
+    </ul>
+    <div class="notes"><b>讲稿：</b>演示顺序就是"真联网→诚实→进阶→澄清→历史"一条线，和 Deck 主线一一对应。关键：让评审亲眼看到"检索过程"和"护栏留痕"在动，而不是看静态结果。卡在澄清轮那一步最能证明"字段驱动、不硬编码台词"。</div>
+  </section>
+
+  <!-- 10 收尾 -->
+  <section class="slide">
+    <div class="kicker">为什么是第一</div>
+    <h2>我们的诚实边界，就是我们的护城河</h2>
+    <ul class="t">
+      <li><span class="big">真联网 + 零编造</span>：查不到就说查不到，不拿"像真的"骗用户——医疗场景这是底线，也是评审最在意的。</li>
+      <li><span class="big">架构级诚实</span>：R1–R12 把"不骗人"写进校验，不是靠提示词祈祷。</li>
+      <li><span class="big">抗限流独立性</span>：神马独立源让"真联网"在生产环境真稳。</li>
+      <li><span class="dim">诚实标注风险</span>：本机 IP 风控下的真机截图仍在补拍（代码零改动），我们不把降级页当可用源——这本身就是诚实纪律的延伸。</li>
+    </ul>
+    <div class="notes"><b>讲稿：</b>收尾回到主线：别人拼"答得像"，我们拼"答得真"。最后一句留给评审——「便民就医，最贵的不是功能，是信任；我们把信任做进了架构。」（真机截图那项是唯一待补，诚实说明，不遮掩。）</div>
+  </section>
+
+  <div class="footer">
+    <div class="counter" id="counter">1 / 10</div>
+    <div class="nav">
+      <button id="prevBtn" onclick="go(-1)">上一页</button>
+      <button id="nextBtn" onclick="go(1)">下一页</button>
+    </div>
+  </div>
+</div>
+<script>
+const slides=[...document.querySelectorAll('.slide')];
+let i=0;
+function show(){slides.forEach((s,k)=>s.classList.toggle('active',k===i));
+  document.getElementById('counter').textContent=(i+1)+' / '+slides.length;
+  document.getElementById('prevBtn').disabled=i===0;
+  document.getElementById('nextBtn').disabled=i===slides.length-1;}
+function go(d){i=Math.max(0,Math.min(slides.length-1,i+d));show();}
+document.addEventListener('keydown',e=>{if(e.key==='ArrowRight')go(1);if(e.key==='ArrowLeft')go(-1);});
+show();
+</script>
+</body>
+</html>

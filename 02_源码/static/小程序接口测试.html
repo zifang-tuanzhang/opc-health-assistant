@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>小程序接口测试台 · AI 医院资源查询</title>
+<style>
+  :root{--bg:#0f1115;--panel:#171a21;--panel2:#1e2230;--line:#2a2f3a;--text:#e6e9ef;
+        --muted:#9aa3b2;--brand:#39c5cf;--brand2:#2a8f96;--ok:#4caf50;--warn:#ffc107;--err:#f44336}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:"Microsoft YaHei","PingFang SC",system-ui,sans-serif;padding:18px 20px 40px}
+  h1{font-size:18px;margin:0 0 4px}
+  .sub{font-size:12px;color:var(--muted);margin-bottom:16px}
+  .sub a{color:var(--brand);text-decoration:none}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media(max-width:900px){.grid{grid-template-columns:1fr}}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px}
+  .card h2{font-size:13px;margin:0 0 10px;color:var(--brand);letter-spacing:.5px}
+  textarea{width:100%;height:120px;background:var(--panel2);border:1px solid var(--line);border-radius:8px;
+           color:var(--text);padding:10px;font-size:13px;font-family:Consolas,Menlo,monospace;resize:vertical}
+  .row{display:flex;gap:10px;margin-top:10px;flex-wrap:wrap}
+  .btn{background:var(--brand2);color:#eafdff;border:none;border-radius:9px;padding:9px 14px;font-size:13px;cursor:pointer;font-family:inherit}
+  .btn:hover{background:var(--brand)}
+  .btn.ghost{background:transparent;border:1px solid var(--line);color:var(--muted)}
+  .btn.ghost:hover{color:var(--text);border-color:var(--brand)}
+  .btn:disabled{opacity:.5;cursor:not-allowed}
+  pre{background:#0b0d11;border:1px solid var(--line);border-radius:8px;padding:10px;font-size:12px;
+      font-family:Consolas,Menlo,monospace;white-space:pre-wrap;word-break:break-word;max-height:320px;overflow:auto;margin:0}
+  .kv{width:100%;border-collapse:collapse;font-size:12px;margin-top:8px}
+  .kv td{border-bottom:1px solid var(--line);padding:5px 4px;vertical-align:top}
+  .kv td:first-child{color:var(--muted);white-space:nowrap;width:130px}
+  .log{font-size:12px;font-family:Consolas,Menlo,monospace;color:var(--muted);max-height:200px;overflow:auto;margin-top:8px}
+  .log div{padding:2px 0;border-bottom:1px solid #1b1f27}
+  .tag{display:inline-block;font-size:11px;padding:1px 6px;border-radius:6px;border:1px solid var(--line);color:var(--muted);margin-left:6px}
+  .tag.ok{color:var(--ok);border-color:var(--ok)} .tag.err{color:var(--err);border-color:var(--err)}
+  .tag.warn{color:var(--warn);border-color:var(--warn)}
+  .note{font-size:12px;color:var(--muted);margin-top:8px;line-height:1.7}
+  code{background:var(--panel2);padding:1px 5px;border-radius:4px;font-size:12px}
+</style>
+</head>
+<body>
+<h1>小程序接口测试台</h1>
+<div class="sub">
+  模拟微信小程序 <code>wx.request</code> 调用本项目接口（同一套 JSON 契约）。
+  <a href="/" target="_blank">← 返回对话界面</a> ·
+  <a href="/health" target="_blank">/health</a>
+</div>
+
+<div class="grid">
+  <div class="card">
+    <h2>① 请求（可编辑 JSON）</h2>
+    <textarea id="reqBody">{
+  "message": "昆明哪家医院有抗蛇毒血清？",
+  "session_id": null
+}</textarea>
+    <div class="row">
+      <button class="btn" id="sendChat">POST /chat（小程序主用）</button>
+      <button class="btn ghost" id="sendStream">POST /chat/stream（看过程）</button>
+      <button class="btn ghost" id="fill2">换个问题</button>
+    </div>
+    <div class="note">
+      契约：请求 <code>{message, session_id?}</code>；响应 <code>ResponseEnvelope</code>，
+      答案永远在 <code>output</code>（4 段式），失败也走同一信封（HTTP 恒 200，看 <code>ok</code>）。
+      多轮对话把上次返回的 <code>session_id</code> 回传即可。
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>② 响应（原始 JSON）<span id="respTag" class="tag">待发送</span></h2>
+    <pre id="respRaw">（点击左侧按钮发送请求）</pre>
+  </div>
+</div>
+
+<div class="grid" style="margin-top:16px">
+  <div class="card">
+    <h2>③ 字段提取（小程序要读的字段）</h2>
+    <table class="kv" id="fields"><tr><td>—</td><td>暂无</td></tr></table>
+  </div>
+  <div class="card">
+    <h2>④ 事件流（/chat/stream，仅调试用）</h2>
+    <div class="log" id="streamLog">（未开始）</div>
+  </div>
+</div>
+
+<div class="card" style="margin-top:16px">
+  <h2>⑤ 小程序接入代码样例（可直接粘贴）</h2>
+<pre>// 微信小程序：发起一次问诊查询
+wx.request({
+  url: 'http://127.0.0.1:8137/chat',   // 真机/上线请换成 https 域名（见部署说明）
+  method: 'POST',
+  header: { 'content-type': 'application/json' },
+  data: { message: '昆明哪家医院有抗蛇毒血清？', session_id: app.globalData.sid || null },
+  success: (res) => {
+    const env = res.data;                 // ResponseEnvelope
+    app.globalData.sid = env.session_id;  // 记住会话，实现多轮
+    if (env.ok === false) {
+      wx.showToast({ title: env.output.usage_tips[0] || '请求未成功', icon: 'none' });
+      return;
+    }
+    const out = env.output;               // 4 段式
+    // ① 查询条件：out.query_condition
+    // ② 查询结果：out.query_results[]（name/type/description/info_status/source{title,url,source_type,updated_note}）
+    // ③ 信息依据：out.info_basis[]（title/url/note/source_type）
+    // ④ 使用提示：out.usage_tips[]
+    // 检索留痕：env.retrieval_log[]（给"可核验"用，可不展示给用户）
+    wx.setStorageSync('lastAnswer', out);
+  },
+  fail: (e) => wx.showToast({ title: '网络异常', icon: 'none' })
+});</pre>
+  <div class="note">
+    说明：<b>SSE（/chat/stream）仅 Web 端调试用</b>；小程序不便消费 SSE，统一用 <b>/chat</b>。
+    接口已开 CORS（开发环境白名单在 <code>OPC_CORS_ORIGINS</code> 配置）；上线微信小程序需 <b>HTTPS + 域名白名单备案</b>。
+  </div>
+</div>
+
+<script>
+const $=(id)=>document.getElementById(id);
+let sid=null;
+
+function esc(s){return (s==null?'':String(s)).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+
+function setTag(t,cls){const e=$('respTag');e.textContent=t;e.className='tag '+(cls||'');}
+
+function renderFields(env){
+  const t=$('fields');t.innerHTML='';
+  const add=(k,v)=>{const tr=document.createElement('tr');tr.innerHTML=`<td>${esc(k)}</td><td>${v}</td>`;t.appendChild(tr);};
+  if(!env||typeof env!=='object'){add('—','暂无');return;}
+  add('ok', env.ok===false?'<span style="color:var(--err)">false</span>':'<span style="color:var(--ok)">true</span>');
+  add('mode', esc(env.mode||''));
+  add('session_id', esc(env.session_id||''));
+  if(env.error_code) add('error_code', '<span style="color:var(--err)">'+esc(env.error_code)+'</span>');
+  add('degraded', env.degraded?'<span style="color:var(--warn)">true</span>':'false');
+  add('reflection_count', esc(env.reflection_count));
+  const o=env.output||{};
+  const qc=o.query_condition||{};
+  add('① 查询条件', esc([qc.region,qc.hospital,qc.department,qc.resource,qc.title,qc.date].filter(Boolean).join(' · ')||'（空）'));
+  add('② 查询结果', (o.query_results||[]).length+' 条');
+  (o.query_results||[]).forEach((r,i)=>{
+    const s=r.source||{};
+    add('　结果['+i+']', esc(r.name||'')+(r.info_status?' <span style="color:var(--warn)">['+esc(r.info_status)+']</span>':'')
+      +(s.url?`<br><a href="${esc(s.url)}" target="_blank" rel="noopener" style="color:var(--brand)">${esc(s.url)}</a>`:''));
+  });
+  add('③ 信息依据', (o.info_basis||[]).length+' 条');
+  add('④ 使用提示', (o.usage_tips||[]).map(x=>esc(x)).join('<br>')||'（空）');
+  add('检索留痕', (env.retrieval_log||[]).map(r=>esc(r.action+':'+(r.query||'')+'→'+r.status+(r.hit_count!=null?'('+r.hit_count+')':''))).join('<br>')||'（空）');
+}
+
+async function sendChat(){
+  let body; try{body=JSON.parse($('reqBody').value);}catch(e){alert('请求体不是合法 JSON');return;}
+  if(!('session_id' in body)) body.session_id=sid;
+  setTag('请求中…','warn'); $('respRaw').textContent='请求中…';
+  $('sendChat').disabled=true;
+  try{
+    const r=await fetch('/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    const env=await r.json();
+    sid=env.session_id||sid;
+    $('respRaw').textContent=JSON.stringify(env,null,2);
+    setTag('HTTP '+r.status+' · ok='+env.ok, env.ok===false?'err':'ok');
+    renderFields(env);
+  }catch(e){ setTag('失败','err'); $('respRaw').textContent='请求失败：'+e.message; }
+  finally{$('sendChat').disabled=false;}
+}
+
+async function sendStream(){
+  let body; try{body=JSON.parse($('reqBody').value);}catch(e){alert('请求体不是合法 JSON');return;}
+  if(!('session_id' in body)) body.session_id=sid;
+  const log=$('streamLog'); log.innerHTML=''; setTag('流式中…','warn');
+  const push=(txt)=>{const d=document.createElement('div');d.textContent=txt;log.appendChild(d);log.scrollTop=log.scrollHeight;};
+  try{
+    const r=await fetch('/chat/stream',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    const reader=r.body.getReader(); const dec=new TextDecoder(); let buf='';
+    while(true){
+      const {value,done}=await reader.read(); if(done) break;
+      buf+=dec.decode(value,{stream:true}); let i;
+      while((i=buf.indexOf('\n\n'))>=0){
+        const chunk=buf.slice(0,i); buf=buf.slice(i+2);
+        const line=chunk.split('\n').find(l=>l.startsWith('data:')); if(!line) continue;
+        let ev; try{ev=JSON.parse(line.slice(5).trim());}catch(e){continue;}
+        if(ev.type==='session'){ sid=ev.session_id; push('session: '+ev.session_id); }
+        else if(ev.type==='final'){ push('final: 收到完整信封'); $('respRaw').textContent=JSON.stringify(ev.envelope,null,2); setTag('流式完成 · ok='+ev.envelope.ok, ev.envelope.ok===false?'err':'ok'); renderFields(ev.envelope); }
+        else if(ev.type==='error'){ push('error: '+ev.message); setTag('流式错误','err'); }
+        else push('stage: '+JSON.stringify(ev));
+      }
+    }
+  }catch(e){ push('流式失败：'+e.message); setTag('流式失败','err'); }
+}
+
+$('sendChat').onclick=sendChat;
+$('sendStream').onclick=sendStream;
+$('fill2').onclick=()=>{
+  const qs=['昆明医科大学第一附属医院心血管内科怎么样？','我头疼得厉害该吃什么药？','我父亲现在胸痛、出冷汗，怎么办？'];
+  const q=qs[Math.floor(Math.random()*qs.length)];
+  $('reqBody').value=JSON.stringify({message:q,session_id:sid},null,2);
+};
+</script>
+</body>
+</html>
